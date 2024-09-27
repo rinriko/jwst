@@ -1,0 +1,65 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    font-size: 15;
+}
+
+.control-panel {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background-color: #e6fefb;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    width: 250px; /* Set your desired width */
+    transition: width 0.3s ease-in-out; /* Add a smooth transition effect */
+    border-radius: 8px; /* Initial border radius */
+}
+.burger-menu {
+    position: absolute;
+    top: 5%;
+    right: 10%;
+    transform: translate(50%, -50%); /* Translate to center */
+    cursor: pointer;
+}
+
+.content {
+    display: block;
+    visibility: visible;
+    font-size: 16px;
+}
+
+.content-hidden {
+    display: none;
+    visibility: hidden;
+    text-align: center;
+    line-height: 1px; /* Vertically center the burger menu */
+    font-size: 24px;
+}
+
+/* Add any additional styling as needed */
+#loader {
+    position: absolute;
+    left: -40px; 
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    animation: spin 2s linear infinite;
+}
+
+  
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }

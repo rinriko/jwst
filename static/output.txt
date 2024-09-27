@@ -1,0 +1,146 @@
+PS T:\jwst> python .\ConvertImage.py
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcblong\jw01666001001_02102_00001-seg001_nrcblong_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcblong\jw01666001001_02102_00001-seg001_nrcblong_o001_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcblong\jw01666001001_02102_00001-seg001_nrcblong_o001_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcblong\jw01666001001_02102_00001-seg001_nrcblong_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcblong\jw01666001001_02102_00001-seg002_nrcblong_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcblong\jw01666001001_02102_00001-seg002_nrcblong_o001_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcblong\jw01666001001_02102_00001-seg002_nrcblong_o001_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcblong\jw01666001001_02102_00001-seg002_nrcblong_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcblong\jw01666001001_02102_00001-seg003_nrcblong_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcblong\jw01666001001_02102_00001-seg003_nrcblong_o001_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcblong\jw01666001001_02102_00001-seg003_nrcblong_o001_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcblong\jw01666001001_02102_00001-seg003_nrcblong_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcb1\jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcb1\jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-02-05T19:02:07.281' from MJD-BEG.
+Set DATE-AVG to '2023-02-05T23:45:24.321' from MJD-AVG.
+Set DATE-END to '2023-02-06T04:28:41.361' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   111.511633 from OBSGEO-[XYZ].
+Set OBSGEO-B to    12.629272 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1616411168.228 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcb1\jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcb1\jw01666001001_02102_00001-seg002_nrcb1_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcb1\jw01666001001_02102_00001-seg002_nrcb1_o001_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-02-05T19:02:07.281' from MJD-BEG.
+Set DATE-AVG to '2023-02-05T23:45:24.321' from MJD-AVG.
+Set DATE-END to '2023-02-06T04:28:41.361' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   111.511633 from OBSGEO-[XYZ].
+Set OBSGEO-B to    12.629272 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1616411168.228 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg002_nrcb1\jw01666001001_02102_00001-seg002_nrcb1_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcb1\jw01666001001_02102_00001-seg003_nrcb1_o001_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcb1\jw01666001001_02102_00001-seg003_nrcb1_o001_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-02-05T19:02:07.281' from MJD-BEG.
+Set DATE-AVG to '2023-02-05T23:45:24.321' from MJD-AVG.
+Set DATE-END to '2023-02-06T04:28:41.361' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   111.511633 from OBSGEO-[XYZ].
+Set OBSGEO-B to    12.629272 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1616411168.228 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg003_nrcb1\jw01666001001_02102_00001-seg003_nrcb1_o001_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcblong\jw01666003001_02102_00001-seg001_nrcblong_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcblong\jw01666003001_02102_00001-seg001_nrcblong_o003_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcblong\jw01666003001_02102_00001-seg001_nrcblong_o003_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcblong\jw01666003001_02102_00001-seg001_nrcblong_o003_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcblong\jw01666003001_02102_00001-seg002_nrcblong_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcblong\jw01666003001_02102_00001-seg002_nrcblong_o003_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcblong\jw01666003001_02102_00001-seg002_nrcblong_o003_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcblong\jw01666003001_02102_00001-seg002_nrcblong_o003_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcblong\jw01666003001_02102_00001-seg003_nrcblong_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcblong\jw01666003001_02102_00001-seg003_nrcblong_o003_crfints.fits  Frame:  1
+Error:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcblong\jw01666003001_02102_00001-seg003_nrcblong_o003_crfints.fits
+
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected 3 dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
+
+----------------------------------------------------------------------------------------------------------------------
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcblong\jw01666003001_02102_00001-seg003_nrcblong_o003_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcb1\jw01666003001_02102_00001-seg001_nrcb1_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcb1\jw01666003001_02102_00001-seg001_nrcb1_o003_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-07-18T18:52:09.541' from MJD-BEG.
+Set DATE-AVG to '2023-07-18T23:35:26.581' from MJD-AVG.
+Set DATE-END to '2023-07-19T04:18:43.621' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   -76.770162 from OBSGEO-[XYZ].
+Set OBSGEO-B to   -36.787931 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1723674048.272 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg001_nrcb1\jw01666003001_02102_00001-seg001_nrcb1_o003_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcb1\jw01666003001_02102_00001-seg002_nrcb1_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcb1\jw01666003001_02102_00001-seg002_nrcb1_o003_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-07-18T18:52:09.541' from MJD-BEG.
+Set DATE-AVG to '2023-07-18T23:35:26.581' from MJD-AVG.
+Set DATE-END to '2023-07-19T04:18:43.621' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   -76.770162 from OBSGEO-[XYZ].
+Set OBSGEO-B to   -36.787931 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1723674048.272 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg002_nrcb1\jw01666003001_02102_00001-seg002_nrcb1_o003_crfints.fits...
+===========================================================================================================================
+Processing T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcb1\jw01666003001_02102_00001-seg003_nrcb1_o003_crfints.fits...
+File:  T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcb1\jw01666003001_02102_00001-seg003_nrcb1_o003_crfints.fits  Frame:  1
+WARNING: FITSFixedWarning: 'cdfix' made the change 'Success'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'datfix' made the change 'Set DATE-BEG to '2023-07-18T18:52:09.541' from MJD-BEG.
+Set DATE-AVG to '2023-07-18T23:35:26.581' from MJD-AVG.
+Set DATE-END to '2023-07-19T04:18:43.621' from MJD-END'. [astropy.wcs.wcs]
+WARNING: FITSFixedWarning: 'obsfix' made the change 'Set OBSGEO-L to   -76.770162 from OBSGEO-[XYZ].
+Set OBSGEO-B to   -36.787931 from OBSGEO-[XYZ].
+Set OBSGEO-H to 1723674048.272 from OBSGEO-[XYZ]'. [astropy.wcs.wcs]
+Finished T:\MAST_2023-10-07T0548\JWST\jw01666003001_02102_00001-seg003_nrcb1\jw01666003001_02102_00001-seg003_nrcb1_o003_crfints.fits...
+===========================================================================================================================
+Conversion completed.
