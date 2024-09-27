@@ -15,6 +15,7 @@ import json
 from astropy.time import Time
 from astropy import units as u, constants as c
 from collections import defaultdict
+import config
 from components import data_type_options, get_epoch, xAxis_options, color_list, sidebar, navbar, content, update_trace, update_df, modal
 
 dash_app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -99,6 +100,8 @@ def adjust_sidebar_content(pathname):
     return errorControl_style, xAxisControl_style, plotTypeControl_style
 
 # navbar
+
+
 @dash_app.callback(
     Output("modal", "is_open"),
     [Input("settings-link", "n_clicks"), Input("close", "n_clicks")],
@@ -142,7 +145,7 @@ def extract_epoch(filename):
     return float('inf')
 
 
-def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection):
+def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection, annotation):
     children = []
     img_data = {}
     imglist = []
@@ -175,7 +178,7 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection):
             color = color_list[(curveNumber % len(
                 dataSelection)) % len(color_list)]
             # Combine the paths
-            file_path = f"./static/img/thumbnails/{filename}"
+            file_path = f"{config.IMG_URI}{filename}"
             # Check if the file exists
             if Path(file_path).exists():
                 if filename not in imglist:
@@ -268,6 +271,7 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection):
                     ], style={'width': whdiv, 'white-space': 'normal', 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center'})
                 )
     if type == 'click':
+        # print(annotation)
         # Create children elements based on the grouped data
         for img_src, data in img_data.items():
             mjd_text = data['mjd_text']
@@ -280,8 +284,22 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection):
             customdata_json = json.dumps(customdata)
             children.append(
                 html.Div([
-                    html.Button('×', id={'type': 'delete-btn', 'index': point_index}, n_clicks=0, style={'background-color': 'red',
-                                                                                                         'color': 'white', 'border': 'none', 'cursor': 'pointer', 'position': 'absolute', 'top': '5px', 'right': '5px'}),
+                    html.Button('×', id={'type': 'delete-btn', 'index': point_index}, n_clicks=0, style={'background-color': 'red', 'color': 'white', 'border': 'none', 'cursor': 'pointer', 'position': 'absolute', 'top': '5px', 'right': '5px'}),
+                    html.Div(
+                        annotation['text'],
+                        style={
+                            'position': 'absolute',
+                            'top': '5px',  # Adjust as needed
+                            'left': '5px',  # Adjust as needed
+                            # Semi-transparent background
+                            'background-color': 'rgba(0, 0, 0, 0.5)',
+                            'color': 'white',
+                            'padding': '2px 5px',
+                            'border-radius': '3px',
+                            'font-size': '12px',
+                            'font-weight': 'bold'
+                        }
+                    ), 
                     html.Img(
                         src=img_src,
                         style={'width': '150px', 'height': '150px',
@@ -314,11 +332,44 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection):
     [Input("plot-chart", "hoverData"),
      Input('tooltipFontSize', 'value'),
      Input('thumnailsSize', 'value'),],
+    State('plot-chart', 'figure'),
     State('dataSelection', 'value'),
     State('dataType', 'value'),
     State("url", "pathname"),
 )
-def display_hover(hoverData, tooltipFontSize, thumnailsSize, dataSelection, dataType, pathname):
+def display_hover(hoverData, tooltipFontSize, thumnailsSize, current_fig, dataSelection, dataType, pathname):
+
+    # Ensure that current_fig is not None and has a layout
+    if current_fig is None:
+        return False, dash.no_update, dash.no_update
+    
+    if 'layout' not in current_fig or current_fig['layout'] is None:
+        current_fig['layout'] = {}
+
+    # Ensure 'annotations' key exists in layout
+    if 'annotations' not in current_fig['layout']:
+        current_fig['layout']['annotations'] = []
+    # Reset all annotations to original color
+    for annotation in current_fig['layout']['annotations']:
+        annotation['font']['color'] = 'red'
+        annotation['arrowcolor'] = 'red'
+    
+    # If hovering over a point
+    if hoverData:
+        x_hover = hoverData['points'][0]['x']
+        y_hover = hoverData['points'][0]['y']
+        
+        # Define a hover threshold (this creates a larger area around the annotation)
+        hover_threshold = 0.5  # Adjust this value as needed
+        
+        # Change color of annotation if it matches the hover point within the threshold
+        for annotation in current_fig['layout']['annotations']:
+            if (annotation['x'] - hover_threshold <= x_hover <= annotation['x'] + hover_threshold and
+                annotation['y'] - hover_threshold <= y_hover <= annotation['y'] + hover_threshold):
+                annotation['font']['color'] = 'blue'  # Change the font color on hover
+                annotation['arrowcolor'] = 'blue'  # Change the arrow color on hover
+                print("found")
+
     if hoverData is None or pathname == "matrix" or dataType == 'average':
         return False, dash.no_update, dash.no_update
     # Sort hoverData["points"] by "curveNumber"
@@ -337,7 +388,7 @@ def display_hover(hoverData, tooltipFontSize, thumnailsSize, dataSelection, data
     all_points = points_with_filenames + points_without_filenames
     # Process each sorted point
 
-    return process_points(all_points, 'hover', tooltipFontSize, thumnailsSize, dataSelection)
+    return process_points(all_points, 'hover', tooltipFontSize, thumnailsSize, dataSelection, [])
 
 
 @dash_app.callback(
@@ -507,6 +558,7 @@ def update_plot_title(dataType, pathname):
     else:
         return ''
 
+
 @dash_app.callback(
     Output('plot-chart', 'figure'),
     Output('image-container', 'children'),
@@ -536,7 +588,7 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
     ctx = dash.callback_context
     if not ctx.triggered:
         return go.Figure(), children, annotations
-    
+    fig = go.Figure()
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     print(triggered_id)
 
@@ -547,31 +599,6 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
     # Initialize annotations if None
     if annotations is None:
         annotations = []
-
-    if triggered_id == 'plot-chart' and pathname != '/matrix' and dataType == 'raw':
-        if clickData:
-            points_with_filenames = [
-                pt for pt in clickData["points"] if "filename" in pt["customdata"]]
-            points_without_filenames = [
-                pt for pt in clickData["points"] if "filename" not in pt["customdata"]]
-
-            points_with_filenames.sort(
-                key=lambda pt: extract_epoch(pt["customdata"]["filename"]))
-
-            all_points = points_with_filenames + points_without_filenames
-
-            cond, bbox, new_children = process_points(
-                all_points, 'click', tooltipFontSize, thumnailsSize, dataSelectionState)
-            
-            if cond:
-                # Add new children to the existing list
-                children = children + new_children
-
-    elif triggered_id in ['dataType', 'url']:
-        children = []
-    elif triggered_id not in ['dataSelection']:
-        # Remove specific children based on 'index'
-        children = [c for c in children if c.get('props', {}).get('id', {}).get('index') != eval(triggered_id)['index']]
 
     if pathname == "/" or pathname == "/noise":
         if triggered_id == 'plot-chart' and clickData and dataType == 'raw':
@@ -590,7 +617,8 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
                 y=y,
                 xref=xref,
                 yref=yref,
-                text=f"No. {len(annotations)+1}",  # Use the length of stored annotations
+                # Use the length of stored annotations
+                text=f"No. {len(annotations)+1}",
                 showarrow=True,
                 arrowhead=7,
                 xanchor="center",
@@ -606,21 +634,24 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
 
             # current_fig['layout'].setdefault('annotations', []).append(new_annotation)
             current_fig['layout']['annotations'] = annotations
-            return current_fig, children, annotations
+            # return current_fig, children, annotations
+            fig = current_fig
 
         elif triggered_id in ['legendFontSize', 'labelFontSize']:
             current_fig['layout']['font']['size'] = labelFontSize
             current_fig['layout']['legend']['font']['size'] = legendFontSize
-            return current_fig, children, annotations
+            # return current_fig, children, annotations
+            fig = current_fig
 
         else:
             SW_traces = update_trace('SW', dataType, dataSelectionInput, noOfBins,
                                      xAxis, errorBars, plotType, noOfDataPoint, pathname)
             LW_traces = update_trace('LW', dataType, dataSelectionInput, noOfBins,
                                      xAxis, errorBars, plotType, noOfDataPoint, pathname)
-            
+
             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-                                x_title=next(option['label'] for option in xAxis_options if option['value'] == xAxis),
+                                x_title=next(
+                                    option['label'] for option in xAxis_options if option['value'] == xAxis),
                                 y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio')
 
             for trace in SW_traces:
@@ -640,14 +671,40 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
             fig.update_layout(
                 height=800,
                 showlegend=True,
-                legend=dict(font=dict(size=legendFontSize), groupclick="toggleitem", grouptitlefont=dict(size=legendFontSize)),
+                legend=dict(font=dict(size=legendFontSize), groupclick="toggleitem",
+                            grouptitlefont=dict(size=legendFontSize)),
                 font=dict(size=labelFontSize),
                 hovermode="closest"
             )
             fig['layout']['annotations'] = annotations
-            return fig, children, annotations
+            # return fig, children, annotations
 
-    return go.Figure(), children, annotations  # Return empty figure if pathname doesn't match
+    if triggered_id == 'plot-chart' and pathname != '/matrix' and dataType == 'raw':
+        if clickData:
+            points_with_filenames = [
+                pt for pt in clickData["points"] if "filename" in pt["customdata"]]
+            points_without_filenames = [
+                pt for pt in clickData["points"] if "filename" not in pt["customdata"]]
+
+            points_with_filenames.sort(
+                key=lambda pt: extract_epoch(pt["customdata"]["filename"]))
+
+            all_points = points_with_filenames + points_without_filenames
+
+            cond, bbox, new_children = process_points(
+                all_points, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, annotations[-1])
+
+            if cond:
+                # Add new children to the existing list
+                children = children + new_children
+    elif triggered_id in ['dataType', 'url']:
+        children = []
+    elif triggered_id not in ['dataSelection']:
+        # Remove specific children based on 'index'
+        children = [c for c in children if c.get('props', {}).get(
+            'id', {}).get('index') != eval(triggered_id)['index']]
+    return fig, children, annotations
+    # return go.Figure(), children, annotations  # Return empty figure if pathname doesn't match
 
 
 @dash_app.callback(
