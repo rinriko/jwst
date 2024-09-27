@@ -1,0 +1,2 @@
+data_for_df.json filter=lfs diff=lfs merge=lfs -text
+rawdata.json filter=lfs diff=lfs merge=lfs -text
