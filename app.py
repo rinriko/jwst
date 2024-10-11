@@ -284,7 +284,8 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection, 
             customdata_json = json.dumps(customdata)
             children.append(
                 html.Div([
-                    html.Button('×', id={'type': 'delete-btn', 'index': point_index}, n_clicks=0, style={'background-color': 'red', 'color': 'white', 'border': 'none', 'cursor': 'pointer', 'position': 'absolute', 'top': '5px', 'right': '5px'}),
+                    html.Button('×', id={'type': 'delete-btn', 'index': point_index}, n_clicks=0, style={'background-color': 'red',
+                                'color': 'white', 'border': 'none', 'cursor': 'pointer', 'position': 'absolute', 'top': '5px', 'right': '5px'}),
                     html.Div(
                         annotation['text'],
                         style={
@@ -299,7 +300,7 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection, 
                             'font-size': '12px',
                             'font-weight': 'bold'
                         }
-                    ), 
+                    ),
                     html.Img(
                         src=img_src,
                         style={'width': '150px', 'height': '150px',
@@ -326,12 +327,12 @@ def process_points(points, type, tooltipFontSize, thumnailsSize, dataSelection, 
 
 
 @dash_app.callback(
-    [Output("graph-tooltip", "show"),
-     Output("graph-tooltip", "bbox"),
-     Output("graph-tooltip", "children")],
-    [Input("plot-chart", "hoverData"),
-     Input('tooltipFontSize', 'value'),
-     Input('thumnailsSize', 'value'),],
+    Output("graph-tooltip", "show"),
+    Output("graph-tooltip", "bbox"),
+    Output("graph-tooltip", "children"),
+    Input("plot-chart", "hoverData"),
+    State('tooltipFontSize', 'value'),
+    State('thumnailsSize', 'value'),
     State('plot-chart', 'figure'),
     State('dataSelection', 'value'),
     State('dataType', 'value'),
@@ -342,33 +343,35 @@ def display_hover(hoverData, tooltipFontSize, thumnailsSize, current_fig, dataSe
     # Ensure that current_fig is not None and has a layout
     if current_fig is None:
         return False, dash.no_update, dash.no_update
-    
-    if 'layout' not in current_fig or current_fig['layout'] is None:
-        current_fig['layout'] = {}
 
-    # Ensure 'annotations' key exists in layout
-    if 'annotations' not in current_fig['layout']:
-        current_fig['layout']['annotations'] = []
-    # Reset all annotations to original color
-    for annotation in current_fig['layout']['annotations']:
-        annotation['font']['color'] = 'red'
-        annotation['arrowcolor'] = 'red'
-    
-    # If hovering over a point
-    if hoverData:
-        x_hover = hoverData['points'][0]['x']
-        y_hover = hoverData['points'][0]['y']
-        
-        # Define a hover threshold (this creates a larger area around the annotation)
-        hover_threshold = 0.5  # Adjust this value as needed
-        
-        # Change color of annotation if it matches the hover point within the threshold
-        for annotation in current_fig['layout']['annotations']:
-            if (annotation['x'] - hover_threshold <= x_hover <= annotation['x'] + hover_threshold and
-                annotation['y'] - hover_threshold <= y_hover <= annotation['y'] + hover_threshold):
-                annotation['font']['color'] = 'blue'  # Change the font color on hover
-                annotation['arrowcolor'] = 'blue'  # Change the arrow color on hover
-                print("found")
+    # if 'layout' not in current_fig or current_fig['layout'] is None:
+    #     current_fig['layout'] = {}
+
+    # # Ensure 'annotations' key exists in layout
+    # if 'annotations' not in current_fig['layout']:
+    #     current_fig['layout']['annotations'] = []
+    # # Reset all annotations to original color
+    # for annotation in current_fig['layout']['annotations']:
+    #     annotation['font']['color'] = 'red'
+    #     annotation['arrowcolor'] = 'red'
+
+    # # If hovering over a point
+    # if hoverData:
+    #     x_hover = hoverData['points'][0]['x']
+    #     y_hover = hoverData['points'][0]['y']
+
+    #     # Define a hover threshold (this creates a larger area around the annotation)
+    #     hover_threshold = 0.5  # Adjust this value as needed
+
+    #     # Change color of annotation if it matches the hover point within the threshold
+    #     for annotation in current_fig['layout']['annotations']:
+    #         if (annotation['x'] - hover_threshold <= x_hover <= annotation['x'] + hover_threshold and
+    #             annotation['y'] - hover_threshold <= y_hover <= annotation['y'] + hover_threshold):
+    #             # Change the font color on hover
+    #             annotation['font']['color'] = 'blue'
+    #             # Change the arrow color on hover
+    #             annotation['arrowcolor'] = 'blue'
+    #             print("found")
 
     if hoverData is None or pathname == "matrix" or dataType == 'average':
         return False, dash.no_update, dash.no_update
@@ -558,6 +561,19 @@ def update_plot_title(dataType, pathname):
     else:
         return ''
 
+@dash_app.callback(
+    Output("output-div", "children"),
+    Input("plot-chart", "clickAnnotationData")
+)
+def handle_click_annotation(hover_data):
+    print(hover_data)
+    if hover_data:
+        # Access information about the hovered annotation
+        annotation_text = hover_data["points"]
+        print(annotation_text)
+        return f"You hovered over the annotation: {annotation_text}"
+    return "No annotation hovered"
+
 
 @dash_app.callback(
     Output('plot-chart', 'figure'),
@@ -590,7 +606,6 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
         return go.Figure(), children, annotations
     fig = go.Figure()
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    print(triggered_id)
 
     # Initialize children if it's None
     if children is None:
@@ -598,10 +613,11 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
 
     # Initialize annotations if None
     if annotations is None:
-        annotations = []
+        annotations = current_fig['layout']['annotations']
 
     if pathname == "/" or pathname == "/noise":
         if triggered_id == 'plot-chart' and clickData and dataType == 'raw':
+            print(current_fig['layout']['annotations'])
             point_index = clickData['points'][0]['pointIndex']
             x = clickData['points'][0]['x']
             y = clickData['points'][0]['y']
@@ -612,13 +628,27 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
             else:
                 xref, yref = "x2", "y2"  # Bottom subplot
 
+            if annotations:
+                try:
+                    # Extract the number from the last annotation's text and increment it
+                    last_annotation = annotations[-1]
+                    last_number = int(last_annotation['text'].split()[-1])  # Try to get the last number
+                    next_number = last_number + 1  # Increment the number
+                except (ValueError, IndexError):
+                    # If the last text isn't a number, go to the else case
+                    next_number = 1
+            else:
+                # Start at 1 if no annotations exist
+                next_number = 1
+                annotations = current_fig['layout']['annotations']
+
             new_annotation = dict(
                 x=x,
                 y=y,
                 xref=xref,
                 yref=yref,
-                # Use the length of stored annotations
-                text=f"No. {len(annotations)+1}",
+                # Use the calculated next number
+                text=f"No. {next_number}",
                 showarrow=True,
                 arrowhead=7,
                 xanchor="center",
@@ -626,7 +656,9 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
                 ax=0,
                 ay=-40,
                 font=dict(color='red'),
-                arrowcolor='red'
+                arrowcolor='red',
+                clicktoshow='onoff',
+                id=f"No.{next_number}",
             )
 
             # Append new annotation to the stored list
@@ -676,7 +708,10 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
                 font=dict(size=labelFontSize),
                 hovermode="closest"
             )
-            fig['layout']['annotations'] = annotations
+            # annotations = []
+            # children = []
+            if len(annotations) >=2:
+                fig['layout']['annotations'] = annotations
             # return fig, children, annotations
 
     if triggered_id == 'plot-chart' and pathname != '/matrix' and dataType == 'raw':
@@ -693,16 +728,41 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
 
             cond, bbox, new_children = process_points(
                 all_points, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, annotations[-1])
-
             if cond:
                 # Add new children to the existing list
                 children = children + new_children
     elif triggered_id in ['dataType', 'url']:
         children = []
-    elif triggered_id not in ['dataSelection']:
+    elif triggered_id not in ['dataSelection', 'xAxis', 'noOfBins', 'errorBars']:# Find the text associated with the index
+        text_to_remove = None  # Initialize variable to hold the text to remove
+        new_child_list = []
+        for c in children:
+            # Check if the child has the correct index
+            if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
+                # Check if the child is of type Div and has children
+                if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                    # Iterate through the children to find the text
+                    for child in c['props']['children']:
+                        if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                            text_to_remove = child.get('props', {}).get('children')
+                            break
+            else:
+                new_child_list.append(c)
+        children = new_child_list
+        annotations = [a for a in annotations if a['text']!= text_to_remove]
+        # current_fig['layout'].setdefault('annotations', []).append(new_annotation)
+
+        current_fig['layout']['annotations'] = annotations
+        # return current_fig, children, annotations
+        fig = current_fig
+    # elif triggered_id in ['dataSelection', 'xAxis']:
+    #     children = []
+    #     annotations = []
+    #     current_fig['layout']['annotations'] = annotations
+    #     fig = current_fig
         # Remove specific children based on 'index'
-        children = [c for c in children if c.get('props', {}).get(
-            'id', {}).get('index') != eval(triggered_id)['index']]
+        # children = [c for c in children if c.get('props', {}).get(
+        #     'id', {}).get('index') != eval(triggered_id)['index']]
     return fig, children, annotations
     # return go.Figure(), children, annotations  # Return empty figure if pathname doesn't match
 

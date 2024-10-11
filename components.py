@@ -250,6 +250,7 @@ content = html.Div(id="page-content", children=[
                             # html.P(id='plot-title',
                             #        className='font-weight-bold'),
                             dcc.Store(id='annotations-store', data=[]),
+                            html.Div(id="output-div"),
                             dcc.Graph(id='plot-chart',
                                       className='bg-light', clear_on_unhover=True)]),
                             dcc.Tooltip(id="graph-tooltip"),
