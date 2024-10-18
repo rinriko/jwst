@@ -144,6 +144,7 @@ def extract_epoch(filename):
     # Use infinity if no epoch is found, so it sorts last
     return float('inf')
 
+
 def handle_triggered_id(triggered_id):
     # Check if it's a string that needs to be parsed
     if isinstance(triggered_id, str):
@@ -162,17 +163,19 @@ def handle_triggered_id(triggered_id):
         print("Unexpected type:", type(triggered_id))
         return None
 
+
 def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, annotation):
     children = []
     img_data = {}
     imglist = []
-    bbox = None
-    # for pt in points:
     bbox = pt.get("bbox", None)
     curveNumber = pt.get("curveNumber", None)
     pointIndex = pt.get("pointIndex", None)
     customdata = pt["customdata"]
-    point_index = f"c{curveNumber}pid{pointIndex}"
+    phase, wavetype = customdata.get("phase"), customdata.get("type")
+    # fig_anno_index = f"{wavetype}_{phase}"
+    # point_index = f"c{curveNumber}pid{pointIndex}"
+    point_index = f"{wavetype}_{phase}"
 
     if "datatype" in customdata:
         return False, bbox, []
@@ -273,7 +276,7 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
                         "width": wh, "height": wh, "objectFit": "cover"}) if img_src else html.Br(),
                     html.Div([
                         html.Span(style={"backgroundColor": color, "borderRadius": "50%",
-                                            "display": "inline-block", "width": "8px", "height": "8px", "marginRight": "5px"}),
+                                         "display": "inline-block", "width": "8px", "height": "8px", "marginRight": "5px"}),
                         html.Div([
                             html.P(y_text, style={
                                 "margin": "2px 0", "lineHeight": "1.1", "fontSize": fontSize}),  # Smaller text
@@ -411,29 +414,257 @@ def display_hover(hoverData, tooltipFontSize, thumnailsSize, current_fig, dataSe
     return process_points(hoverData["points"][0], 'hover', tooltipFontSize, thumnailsSize, dataSelection, [])
 
 
+# @dash_app.callback(
+#     Output('image-modal', 'is_open'),
+#     Output('modal-image', 'src'),
+#     Output('modal-details', 'children'),  # Add output for modal details
+#     Output('value-store', 'data'),
+#     Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
+#           'src': dash.dependencies.ALL}, 'n_clicks'),
+#     Input('close-modal', 'n_clicks'),
+#     State('value-store', 'data'),
+#     State('image-container', 'children'),
+#     State('image-modal', 'is_open'),
+#     State({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
+#           'src': dash.dependencies.ALL}, 'n_clicks_timestamp')
+# )
+# def toggle_modal(img_n_clicks, close_n_clicks, data, children, is_open, timestamps):
+#     ctx = dash.callback_context
+
+#     if not ctx.triggered:
+#         return is_open, None, None, data
+
+#     triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
+#     # print(triggered_id)
+#     if 'dynamic-img' in triggered_id:
+#         valid_timestamps = [
+#             timestamp for timestamp in timestamps if timestamp is not None]
+#         if valid_timestamps:
+#             latest_click = max(valid_timestamps)
+#             latest_index = timestamps.index(latest_click)
+#             image_index = children[latest_index]['props']['id']['index']
+#             if eval(triggered_id)['index'] == image_index and latest_click > data:
+#                 data = latest_click
+
+#                 # Extract the custom data attributes
+#                 for child in children:
+#                     if child['props']['id']['index'] == image_index:
+#                         # Access the custom data attributes from `data-*`
+#                         mjd_text = child['props'].get('data-mjd-text', 'N/A')
+#                         time_text = child['props'].get('data-time-text', 'N/A')
+#                         phase_text = child['props'].get(
+#                             'data-phase-text', 'N/A')
+#                         filename_full = child['props'].get(
+#                             'data-filename', 'N/A')
+#                         img_src = child['props'].get('data-img-src', 'N/A')
+#                         point_index = child['props'].get(
+#                             'data-point-index', 'N/A')
+#                         color = child['props'].get('data-color', 'N/A')
+
+#                         # Retrieve and deserialize JSON attributes if they exist
+#                         img_details_json = child['props'].get(
+#                             'data-img-details', '[]')
+#                         img_details = json.loads(
+#                             img_details_json) if img_details_json else []
+#                         customdata_json = child['props'].get(
+#                             'data-customdata', '{}')
+#                         customdata = json.loads(
+#                             customdata_json) if customdata_json else {}
+
+#                         # Extract the filename and image slice
+#                         filename = filename_full.split(
+#                             '/')[-1].split('_slice')[0].replace('.png', '.fits')
+#                         image_slice = filename_full.split(
+#                             '_slice')[-1].split('.')[0]
+#                         # Common font size for consistency
+#                         common_font_size = "14px"
+#                         # Prepare modal details
+#                         modal_details = [
+#                             html.P(f"{mjd_text}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"{time_text}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"{phase_text}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"Epoch: {customdata['epoch']}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"Wave Type: {customdata['type']}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"Filename: {filename}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.P(f"Image Slice: {image_slice}", style={
+#                                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size}),
+#                             html.Br(),
+#                         ]
+
+#                         # Dynamically create HTML elements for each y_text and color in img_details
+#                         for detail in img_details:
+#                             y_text_item = detail.get('y_text', 'N/A')
+#                             color_item = detail.get('color', 'N/A')
+#                             r_in = detail.get('r_in', 'N/A')
+#                             r_out = detail.get('r_out', 'N/A')
+#                             modal_details.append(
+#                                 html.Div([
+#                                     html.Span(
+#                                         style={"backgroundColor": color_item, "borderRadius": "50%",
+#                                                "display": "inline-block", "width": "10px", "height": "10px", "marginRight": "5px"}
+#                                     ),
+#                                     html.P(f"(r_in: {r_in}, r_out: {r_out}) {y_text_item} ", style={
+#                                            "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size})
+#                                 ], style={"display": "flex", "alignItems": "center"})
+#                             )
+#                         break
+#                 return not is_open, eval(triggered_id)['src'].replace("thumbnails", "full-size"), modal_details, data
+
+#     elif 'close-modal' in triggered_id:
+#         return not is_open, None, None, data
+
+#     return is_open, None, None, data
+
+@dash_app.callback(
+    Output('2d_plot', 'style'),
+    Output('imageContent', 'style'),
+    Output('matrix_plot', 'style'),
+    Input("url", "pathname")
+)
+def render_page_content(pathname):
+    if pathname == "/":
+        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
+    elif pathname == "/noise":
+        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
+    elif pathname == "/matrix":
+        return {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'flex'}
+    elif pathname == "/test":
+        return html.P("Oh cool, this is test page!")
+    # If the user tries to reach a different page, return a 404 message
+    return html.Div(
+        [
+            html.H1("404: Not found", className="text-danger"),
+            html.Hr(),
+            html.P(f"The pathname {pathname} was not recognised..."),
+        ],
+        className="p-3 bg-light rounded-3",
+    )
+
+
+@dash_app.callback(
+    Output('plot-title', 'children'),
+    Input('dataType', 'value'),
+    Input("url", "pathname")
+)
+def update_plot_title(dataType, pathname):
+    if pathname == "/":
+        try:
+            dataType_label = next(
+                option['label'] for option in data_type_options if option['value'] == dataType)
+            title_plot = f'ZTF J1539 PSF Light Curves: {dataType_label}'
+        except StopIteration:
+            title_plot = 'ZTF J1539 PSF Light Curves: Unknown Data Type'
+        return title_plot
+    elif pathname == "/noise":
+        try:
+            dataType_label = next(
+                option['label'] for option in data_type_options if option['value'] == dataType)
+            title_plot = f'ZTF J1539 PSF Signal-to-noise: {dataType_label}'
+        except StopIteration:
+            title_plot = 'ZTF J1539 PSF Signal-to-noise: Unknown Data Type'
+        return title_plot
+    elif pathname == "/matrix":
+        try:
+            dataType_label = next(
+                option['label'] for option in data_type_options if option['value'] == dataType)
+            title_plot = f'ZTF J1539 PSF Scatter Matrix Plots for SW and LW Data: {dataType_label}'
+        except StopIteration:
+            title_plot = 'ZTF J1539 PSF Scatter Matrix Plots for SW and LW Data: Unknown Data Type'
+        return title_plot
+    else:
+        return ''
+
+
+# @dash_app.callback(
+#     Output('plot-chart', 'figure'),
+#     Output('image-container', 'children'),
+#     Output('annotations-store', 'data'),
+#     Output('annotations-clicked', 'data'),
+#     Input({'type': 'delete-btn', 'index': dash.dependencies.ALL}, 'n_clicks'),
+#     Input('dataType', 'value'),
+#     Input('dataSelection', 'value'),
+#     Input('noOfBins', 'value'),
+#     Input('xAxis', 'value'),
+#     Input('errorBars', 'value'),
+#     Input('plotType', 'value'),
+#     Input('noOfDataPoint', 'value'),
+#     Input('legendFontSize', 'value'),
+#     Input('labelFontSize', 'value'),
+#     Input("url", "pathname"),
+#     Input('plot-chart', 'clickData'),
+#     Input('plot-chart', 'clickAnnotationData'),
+#     State('plot-chart', 'figure'),
+#     State('dataSelection', 'value'),
+#     State('image-container', 'children'),
+#     State('tooltipFontSize', 'value'),
+#     State('thumnailsSize', 'value'),
+#     State('annotations-store', 'data'),
+#     State('annotations-clicked', 'data'),
+# )
+# def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, noOfDataPoint,
+#                 legendFontSize, labelFontSize, pathname, clickData, clickAnnotationData, current_fig, dataSelectionState, children,
+#                 tooltipFontSize, thumnailsSize, annotations, anno_clicked):
 @dash_app.callback(
     Output('image-modal', 'is_open'),
     Output('modal-image', 'src'),
-    Output('modal-details', 'children'),  # Add output for modal details
+    Output('modal-details', 'children'),
     Output('value-store', 'data'),
-    Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
-          'src': dash.dependencies.ALL}, 'n_clicks'),
+    Output('plot-chart', 'figure'),
+    Output('image-container', 'children'),
+    Output('annotations-store', 'data'),
+    Output('annotations-clicked', 'data'),
+    Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL, 'src': dash.dependencies.ALL}, 'n_clicks'),
     Input('close-modal', 'n_clicks'),
+    Input({'type': 'delete-btn', 'index': dash.dependencies.ALL}, 'n_clicks'),
+    Input('dataType', 'value'),
+    Input('dataSelection', 'value'),
+    Input('noOfBins', 'value'),
+    Input('xAxis', 'value'),
+    Input('errorBars', 'value'),
+    Input('plotType', 'value'),
+    Input('noOfDataPoint', 'value'),
+    Input('legendFontSize', 'value'),
+    Input('labelFontSize', 'value'),
+    Input("url", "pathname"),
+    Input('plot-chart', 'clickData'),
+    Input('plot-chart', 'clickAnnotationData'),
     State('value-store', 'data'),
     State('image-container', 'children'),
     State('image-modal', 'is_open'),
-    State({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
-          'src': dash.dependencies.ALL}, 'n_clicks_timestamp')
+    State({'type': 'dynamic-img', 'index': dash.dependencies.ALL, 'src': dash.dependencies.ALL}, 'n_clicks_timestamp'),
+    State('plot-chart', 'figure'),
+    State('dataSelection', 'value'),
+    State('tooltipFontSize', 'value'),
+    State('thumnailsSize', 'value'),
+    State('annotations-store', 'data'),
+    State('annotations-clicked', 'data')
 )
-def toggle_modal(img_n_clicks, close_n_clicks, data, children, is_open, timestamps):
+def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, 
+                      noOfDataPoint, legendFontSize, labelFontSize, pathname, clickData, clickAnnotationData, 
+                      data, children, is_open, timestamps, current_fig, dataSelectionState, tooltipFontSize, thumnailsSize, 
+                      annotations, anno_clicked):
     ctx = dash.callback_context
-
     if not ctx.triggered:
-        return is_open, None, None, data
-
-    triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
-    # print(triggered_id)
-    if 'dynamic-img' in triggered_id:
+        return is_open, None, None, data, go.Figure(), children, annotations
+    anno_click = anno_clicked
+    is_anno_clicked = False
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    fig = go.Figure() if not current_fig else current_fig
+    if children is None:
+        children = []
+    if annotations is None:
+        annotations = current_fig['layout']['annotations']
+    print(not is_anno_clicked , triggered_id,"delete-btn" in triggered_id)
+    imgsrc = None
+    modal_details = None
+    if 'dynamic-img' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
+        triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
         valid_timestamps = [
             timestamp for timestamp in timestamps if timestamp is not None]
         if valid_timestamps:
@@ -442,8 +673,29 @@ def toggle_modal(img_n_clicks, close_n_clicks, data, children, is_open, timestam
             image_index = children[latest_index]['props']['id']['index']
             if eval(triggered_id)['index'] == image_index and latest_click > data:
                 data = latest_click
-
                 # Extract the custom data attributes
+                for a in annotations:
+                    if "id" in a:
+                        if a["id"] == eval(triggered_id)['index']:
+                            a["bgcolor"] = "red"
+                        else:
+                            a["bgcolor"] = "black"
+                fig['layout']['annotations'] = annotations
+
+                for c in children:
+                    if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(255, 0, 0, 0.7)'
+                                    break
+                    else:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    break
+                
                 for child in children:
                     if child['props']['id']['index'] == image_index:
                         # Access the custom data attributes from `data-*`
@@ -511,461 +763,49 @@ def toggle_modal(img_n_clicks, close_n_clicks, data, children, is_open, timestam
                                 ], style={"display": "flex", "alignItems": "center"})
                             )
                         break
-                return not is_open, eval(triggered_id)['src'].replace("thumbnails", "full-size"), modal_details, data
+                is_open = not is_open
+                imgsrc = eval(triggered_id)['src'].replace("thumbnails", "full-size")
+                # return is_open, imgsrc, modal_details, data
 
-    elif 'close-modal' in triggered_id:
-        return not is_open, None, None, data
+    elif 'close-modal' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
+        is_open = not is_open
+        # return is_open, imgsrc, modal_details, data
 
-    return is_open, None, None, data
-
-
-@dash_app.callback(
-    Output('2d_plot', 'style'),
-    Output('imageContent', 'style'),
-    Output('matrix_plot', 'style'),
-    Input("url", "pathname")
-)
-def render_page_content(pathname):
-    if pathname == "/":
-        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
-    elif pathname == "/noise":
-        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
-    elif pathname == "/matrix":
-        return {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'flex'}
-    elif pathname == "/test":
-        return html.P("Oh cool, this is test page!")
-    # If the user tries to reach a different page, return a 404 message
-    return html.Div(
-        [
-            html.H1("404: Not found", className="text-danger"),
-            html.Hr(),
-            html.P(f"The pathname {pathname} was not recognised..."),
-        ],
-        className="p-3 bg-light rounded-3",
-    )
-
-
-@dash_app.callback(
-    Output('plot-title', 'children'),
-    Input('dataType', 'value'),
-    Input("url", "pathname")
-)
-def update_plot_title(dataType, pathname):
-    if pathname == "/":
-        try:
-            dataType_label = next(
-                option['label'] for option in data_type_options if option['value'] == dataType)
-            title_plot = f'ZTF J1539 PSF Light Curves: {dataType_label}'
-        except StopIteration:
-            title_plot = 'ZTF J1539 PSF Light Curves: Unknown Data Type'
-        return title_plot
-    elif pathname == "/noise":
-        try:
-            dataType_label = next(
-                option['label'] for option in data_type_options if option['value'] == dataType)
-            title_plot = f'ZTF J1539 PSF Signal-to-noise: {dataType_label}'
-        except StopIteration:
-            title_plot = 'ZTF J1539 PSF Signal-to-noise: Unknown Data Type'
-        return title_plot
-    elif pathname == "/matrix":
-        try:
-            dataType_label = next(
-                option['label'] for option in data_type_options if option['value'] == dataType)
-            title_plot = f'ZTF J1539 PSF Scatter Matrix Plots for SW and LW Data: {dataType_label}'
-        except StopIteration:
-            title_plot = 'ZTF J1539 PSF Scatter Matrix Plots for SW and LW Data: Unknown Data Type'
-        return title_plot
-    else:
-        return ''
-
-# @dash_app.callback(
-#     Output('plot-chart', 'figure'),
-#     Output('image-container', 'children'),
-#     Output('annotations-store', 'data'),  # Update annotations store
-#     Input({'type': 'delete-btn', 'index': dash.dependencies.ALL}, 'n_clicks'),
-#     Input('dataType', 'value'),
-#     Input('dataSelection', 'value'),
-#     Input('noOfBins', 'value'),
-#     Input('xAxis', 'value'),
-#     Input('errorBars', 'value'),
-#     Input('plotType', 'value'),
-#     Input('noOfDataPoint', 'value'),
-#     Input('legendFontSize', 'value'),
-#     Input('labelFontSize', 'value'),
-#     Input("url", "pathname"),
-#     Input('plot-chart', 'clickData'),
-#     State('plot-chart', 'figure'),
-#     State('dataSelection', 'value'),
-#     State('image-container', 'children'),
-#     State('tooltipFontSize', 'value'),
-#     State('thumnailsSize', 'value'),
-#     State('annotations-store', 'data')  # Get current annotations from store
-# )
-# def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, noOfDataPoint,
-#                 legendFontSize, labelFontSize, pathname, clickData, current_fig, dataSelectionState, children,
-#                 tooltipFontSize, thumnailsSize, annotations):
-#     ctx = dash.callback_context
-#     if not ctx.triggered:
-#         return go.Figure(), children, annotations
-#     fig = go.Figure()
-#     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#     triggered_id_parsed = handle_triggered_id(triggered_id)
-#     # Initialize children if it's None
-#     if children is None:
-#         children = []
-
-#     # Initialize annotations if None
-#     if annotations is None:
-#         annotations = current_fig['layout']['annotations']
-
-
-
-#     if pathname != '/matrix':
-#         print("TEST1")
-#         if triggered_id == 'plot-chart' and dataType == 'raw' and clickData:
-#             print("TEST1.1")
-#             pt = clickData['points'][0]
-#             bbox = pt.get("bbox", None)
-#             curveNumber = pt.get("curveNumber", None)
-#             pointIndex = pt.get("pointIndex", None)
-#             x = pt.get("x", None)
-#             y = pt.get("y", None)
-#             customdata = pt.get("customdata", None)
-#             phase = customdata.get("phase", None)
-#             epoch = customdata.get("epoch", None)
-#             wavetype = customdata.get("type", None)
-#             r_in = customdata.get("r_in", None)
-#             r_out = customdata.get("r_out", None)
-
-#             fig_anno_index = f"{wavetype}_{phase}"
-
-#             if curveNumber < len(dataSelectionInput):
-#                 xref, yref = "x", "y"  # Top subplot
-#             else:
-#                 xref, yref = "x2", "y2"  # Bottom subplot
-            
-#             if annotations:
-#                 try:
-#                     # Extract the number from the last annotation's text and increment it
-#                     last_annotation = annotations[-1]
-#                     last_number = int(last_annotation['text'].split()[-1])  # Try to get the last number
-#                     next_number = last_number + 1  # Increment the number
-#                 except (ValueError, IndexError):
-#                     # If the last text isn't a number, go to the else case
-#                     next_number = 1
-#             else:
-#                 # Start at 1 if no annotations exist
-#                 next_number = 1
-#                 annotations = current_fig['layout']['annotations']
-
-#             new_annotation = dict(
-#                 x=x,
-#                 y=y,
-#                 xref=xref,
-#                 yref=yref,
-#                 # Use the calculated next number
-#                 text=f"No. {next_number}",
-#                 showarrow=True,
-#                 arrowhead=7,
-#                 xanchor="center",
-#                 yanchor="bottom",
-#                 ax=0,
-#                 ay=-40,
-#                 font=dict(color='red'),
-#                 arrowcolor='red',
-#                 clicktoshow='onoff',
-#                 id=fig_anno_index,
-#             )
-
-#             # Append new annotation to the stored list
-#             annotations.append(new_annotation)
-#             current_fig['layout']['annotations'] = annotations
-#             # return current_fig, children, annotations
-#             fig = current_fig
-
-#             cond, bbox, new_children = process_points(pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, annotations[-1])
-#             if cond:
-#                 # Add new children to the existing list
-#                 children = children + new_children
-#         elif triggered_id in ['legendFontSize', 'labelFontSize']:
-#             print("TEST1.2")
-#             current_fig['layout']['font']['size'] = labelFontSize
-#             current_fig['layout']['legend']['font']['size'] = legendFontSize
-#             # return current_fig, children, annotations
-#             fig = current_fig
-#         elif  triggered_id_parsed and isinstance(triggered_id_parsed, dict):
-#                 if triggered_id_parsed["type"] == "delete-btn":
-#                 # triggered_id_parsed.get('type', {}) == "delete-btn":
-#             # triggered_id not in ['dataSelection', 'xAxis', 'noOfBins', 'errorBars']:# Find the text associated with the index
-#                     print(triggered_id)
-#                     print("TEST3")
-#                     text_to_remove = None  # Initialize variable to hold the text to remove
-#                     new_child_list = []
-#                     for c in children:
-#                         print(c)
-#                         # Check if the child has the correct index
-#                         if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
-#                             # Check if the child is of type Div and has children
-#                             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-#                                 # Iterate through the children to find the text
-#                                 for child in c['props']['children']:
-#                                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-#                                         text_to_remove = child.get('props', {}).get('children')
-#                                         break
-#                         else:
-#                             new_child_list.append(c)
-#                     children = new_child_list
-#                     annotations = [a for a in annotations if a['text']!= text_to_remove]
-#                     # current_fig['layout'].setdefault('annotations', []).append(new_annotation)
-
-#                     current_fig['layout']['annotations'] = annotations
-#                     # return current_fig, children, annotations
-#                     fig = current_fig
-#         else:
-#             print("TEST1.3")
-#             SW_traces = update_trace('SW', dataType, dataSelectionInput, noOfBins,
-#                                      xAxis, errorBars, plotType, noOfDataPoint, pathname)
-#             LW_traces = update_trace('LW', dataType, dataSelectionInput, noOfBins,
-#                                      xAxis, errorBars, plotType, noOfDataPoint, pathname)
-
-#             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-#                                 x_title=next(
-#                                     option['label'] for option in xAxis_options if option['value'] == xAxis),
-#                                 y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio')
-
-#             for trace in SW_traces:
-#                 fig.add_trace(trace, row=1, col=1)
-#             for trace in LW_traces:
-#                 fig.add_trace(trace, row=2, col=1)
-
-#             if dataType == 'average' and xAxis == 'phase':
-#                 bin_edges = np.linspace(0, 2, noOfBins + 1)
-#                 colors = ["lightblue", "lightgray"]
-#                 shapes = [
-#                     {'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
-#                      'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)
-#                 ]
-#                 fig.update_layout(shapes=shapes)
-
-#             fig.update_layout(
-#                 height=800,
-#                 showlegend=True,
-#                 legend=dict(font=dict(size=legendFontSize), groupclick="toggleitem",
-#                             grouptitlefont=dict(size=legendFontSize)),
-#                 font=dict(size=labelFontSize),
-#                 hovermode="closest"
-#             )
-#             # annotations = []
-#             # children = []
-#             if len(annotations) >=2:
-#                 annotations = []
-#                 children = []
-#             if triggered_id in ['dataType', 'url']:
-#                 children = []
-            
-        
-
-#     return fig, children, annotations
-#     # if pathname == "/" or pathname == "/noise":
-#     #     if triggered_id == 'plot-chart' and clickData and dataType == 'raw':
-#     #         print(current_fig['layout']['annotations'])
-#     #         point_index = clickData['points'][0]['pointIndex']
-#     #         x = clickData['points'][0]['x']
-#     #         y = clickData['points'][0]['y']
-#     #         curve_number = clickData['points'][0]['curveNumber']
-
-#     #         if curve_number < len(dataSelectionInput):
-#     #             xref, yref = "x", "y"  # Top subplot
-#     #         else:
-#     #             xref, yref = "x2", "y2"  # Bottom subplot
-
-#     #         if annotations:
-#     #             try:
-#     #                 # Extract the number from the last annotation's text and increment it
-#     #                 last_annotation = annotations[-1]
-#     #                 last_number = int(last_annotation['text'].split()[-1])  # Try to get the last number
-#     #                 next_number = last_number + 1  # Increment the number
-#     #             except (ValueError, IndexError):
-#     #                 # If the last text isn't a number, go to the else case
-#     #                 next_number = 1
-#     #         else:
-#     #             # Start at 1 if no annotations exist
-#     #             next_number = 1
-#     #             annotations = current_fig['layout']['annotations']
-
-#     #         new_annotation = dict(
-#     #             x=x,
-#     #             y=y,
-#     #             xref=xref,
-#     #             yref=yref,
-#     #             # Use the calculated next number
-#     #             text=f"No. {next_number}",
-#     #             showarrow=True,
-#     #             arrowhead=7,
-#     #             xanchor="center",
-#     #             yanchor="bottom",
-#     #             ax=0,
-#     #             ay=-40,
-#     #             font=dict(color='red'),
-#     #             arrowcolor='red',
-#     #             clicktoshow='onoff',
-#     #             id=f"No.{next_number}",
-#     #         )
-
-#     #         # Append new annotation to the stored list
-#     #         annotations.append(new_annotation)
-
-#     #         # current_fig['layout'].setdefault('annotations', []).append(new_annotation)
-#     #         current_fig['layout']['annotations'] = annotations
-#     #         # return current_fig, children, annotations
-#     #         fig = current_fig
-
-#     #     elif triggered_id in ['legendFontSize', 'labelFontSize']:
-#     #         current_fig['layout']['font']['size'] = labelFontSize
-#     #         current_fig['layout']['legend']['font']['size'] = legendFontSize
-#     #         # return current_fig, children, annotations
-#     #         fig = current_fig
-
-#     #     else:
-#     #         SW_traces = update_trace('SW', dataType, dataSelectionInput, noOfBins,
-#     #                                  xAxis, errorBars, plotType, noOfDataPoint, pathname)
-#     #         LW_traces = update_trace('LW', dataType, dataSelectionInput, noOfBins,
-#     #                                  xAxis, errorBars, plotType, noOfDataPoint, pathname)
-
-#     #         fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-#     #                             x_title=next(
-#     #                                 option['label'] for option in xAxis_options if option['value'] == xAxis),
-#     #                             y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio')
-
-#     #         for trace in SW_traces:
-#     #             fig.add_trace(trace, row=1, col=1)
-#     #         for trace in LW_traces:
-#     #             fig.add_trace(trace, row=2, col=1)
-
-#     #         if dataType == 'average' and xAxis == 'phase':
-#     #             bin_edges = np.linspace(0, 2, noOfBins + 1)
-#     #             colors = ["lightblue", "lightgray"]
-#     #             shapes = [
-#     #                 {'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
-#     #                  'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)
-#     #             ]
-#     #             fig.update_layout(shapes=shapes)
-
-#     #         fig.update_layout(
-#     #             height=800,
-#     #             showlegend=True,
-#     #             legend=dict(font=dict(size=legendFontSize), groupclick="toggleitem",
-#     #                         grouptitlefont=dict(size=legendFontSize)),
-#     #             font=dict(size=labelFontSize),
-#     #             hovermode="closest"
-#     #         )
-#     #         # annotations = []
-#     #         # children = []
-#     #         if len(annotations) >=2:
-#     #             fig['layout']['annotations'] = annotations
-#     #         # return fig, children, annotations
-        
-
-
-#     # if triggered_id == 'plot-chart' and pathname != '/matrix' and dataType == 'raw':
-#     #     if clickData:
-#     #         points_with_filenames = [
-#     #             pt for pt in clickData["points"] if "filename" in pt["customdata"]]
-#     #         points_without_filenames = [
-#     #             pt for pt in clickData["points"] if "filename" not in pt["customdata"]]
-
-#     #         points_with_filenames.sort(
-#     #             key=lambda pt: extract_epoch(pt["customdata"]["filename"]))
-
-#     #         all_points = points_with_filenames + points_without_filenames
-#     #         print("all_points",all_points)
-#     #         print("clickData",clickData["points"])
-
-#     #         cond, bbox, new_children = process_points(
-#     #             all_points, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, annotations[-1])
-#     #         if cond:
-#     #             # Add new children to the existing list
-#     #             children = children + new_children
-#     # elif triggered_id in ['dataType', 'url']:
-#     #     children = []
-#     # elif triggered_id not in ['dataSelection', 'xAxis', 'noOfBins', 'errorBars']:# Find the text associated with the index
-#     #     text_to_remove = None  # Initialize variable to hold the text to remove
-#     #     new_child_list = []
-#     #     for c in children:
-#     #         # Check if the child has the correct index
-#     #         if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
-#     #             # Check if the child is of type Div and has children
-#     #             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-#     #                 # Iterate through the children to find the text
-#     #                 for child in c['props']['children']:
-#     #                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-#     #                         text_to_remove = child.get('props', {}).get('children')
-#     #                         break
-#     #         else:
-#     #             new_child_list.append(c)
-#     #     children = new_child_list
-#     #     annotations = [a for a in annotations if a['text']!= text_to_remove]
-#     #     # current_fig['layout'].setdefault('annotations', []).append(new_annotation)
-
-#     #     current_fig['layout']['annotations'] = annotations
-#     #     # return current_fig, children, annotations
-#     #     fig = current_fig
-#     # # elif triggered_id in ['dataSelection', 'xAxis']:
-#     # #     children = []
-#     # #     annotations = []
-#     # #     current_fig['layout']['annotations'] = annotations
-#     # #     fig = current_fig
-#     #     # Remove specific children based on 'index'
-#     #     # children = [c for c in children if c.get('props', {}).get(
-#     #     #     'id', {}).get('index') != eval(triggered_id)['index']]
-#     # return fig, children, annotations
-#     # return go.Figure(), children, annotations  # Return empty figure if pathname doesn't match
-
-
-@dash_app.callback(
-    Output('plot-chart', 'figure'),
-    Output('image-container', 'children'),
-    Output('annotations-store', 'data'),
-    Input({'type': 'delete-btn', 'index': dash.dependencies.ALL}, 'n_clicks'),
-    Input('dataType', 'value'),
-    Input('dataSelection', 'value'),
-    Input('noOfBins', 'value'),
-    Input('xAxis', 'value'),
-    Input('errorBars', 'value'),
-    Input('plotType', 'value'),
-    Input('noOfDataPoint', 'value'),
-    Input('legendFontSize', 'value'),
-    Input('labelFontSize', 'value'),
-    Input("url", "pathname"),
-    Input('plot-chart', 'clickData'),
-    State('plot-chart', 'figure'),
-    State('dataSelection', 'value'),
-    State('image-container', 'children'),
-    State('tooltipFontSize', 'value'),
-    State('thumnailsSize', 'value'),
-    State('annotations-store', 'data')
-)
-def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, noOfDataPoint,
-                legendFontSize, labelFontSize, pathname, clickData, current_fig, dataSelectionState, children,
-                tooltipFontSize, thumnailsSize, annotations):
-    ctx = dash.callback_context
-    if not ctx.triggered:
-        return go.Figure(), children, annotations
-
-    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    fig = go.Figure() if not current_fig else current_fig
-    if children is None:
-        children = []
-    if annotations is None:
-        annotations = current_fig['layout']['annotations']
-
-    if pathname != '/matrix':
-        if triggered_id == 'plot-chart' and dataType == 'raw' and clickData:
+    elif pathname != '/matrix':
+        if triggered_id == 'plot-chart' and clickAnnotationData:
+            if clickAnnotationData["annotation"]["id"]!=anno_click:
+                anno_click = clickAnnotationData["annotation"]["id"]
+                for a in annotations:
+                    if "id" in a:
+                        if a["id"] == anno_click:
+                            a["bgcolor"] = "red"
+                        else:
+                            a["bgcolor"] = "black"
+                
+                for c in children:
+                    if c.get('props', {}).get('id', {}).get('index') == anno_click:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(255, 0, 0, 0.7)'
+                                    break
+                    else:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    break
+                is_anno_clicked = True
+                fig['layout']['annotations'] = annotations
+        if not is_anno_clicked and triggered_id == 'plot-chart' and dataType == 'raw' and clickData:
+            print("1")
             pt = clickData['points'][0]
             curveNumber = pt.get("curveNumber")
-            x, y, customdata = pt.get("x"), pt.get("y"), pt.get("customdata", {})
+            x, y, customdata = pt.get("x"), pt.get(
+                "y"), pt.get("customdata", {})
             phase, wavetype = customdata.get("phase"), customdata.get("type")
-            xref, yref = ("x", "y") if curveNumber < len(dataSelectionInput) else ("x2", "y2")
+            xref, yref = ("x", "y") if curveNumber < len(
+                dataSelectionInput) else ("x2", "y2")
             fig_anno_index = f"{wavetype}_{phase}"
             if annotations:
                 try:
@@ -977,56 +817,71 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
             else:
                 next_number = 1
                 annotations = current_fig['layout']['annotations']
-            new_annotation = dict(
-                x=x,
-                y=y,
-                xref=xref,
-                yref=yref,
-                text=f"No. {next_number}",
-                showarrow=True,
-                arrowhead=7,
-                xanchor="center",
-                yanchor="bottom",
-                ax=0,
-                ay=-40,
-                font=dict(color='red'),
-                arrowcolor='red',
-                clicktoshow='onoff',
-                id=fig_anno_index,
-            )
-            annotations.append(new_annotation)
-            fig['layout']['annotations'] = annotations
+            existing_ids = [anno.get('id') for anno in annotations if 'id' in anno]
 
-            cond, bbox, new_children = process_points(pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, new_annotation)
-            if cond:
-                children += new_children
+            if fig_anno_index not in existing_ids:
+                new_annotation = dict(
+                    x=x,
+                    y=y,
+                    xref=xref,
+                    yref=yref,
+                    text=f"No. {next_number}",
+                    showarrow=True,
+                    arrowhead=7,
+                    xanchor="center",
+                    yanchor="bottom",
+                    ax=0,
+                    ay=-40,
+                    # Increased font size and changed color
+                    font=dict(color='white', size=14),
+                    bgcolor='black',  # Background color for the text
+                    bordercolor='black',  # Border color
+                    borderwidth=2,  # Width of the border
+                    borderpad=4,  # Padding around the text inside the border
+                    arrowcolor='black',
+                    # clicktoshow='onoff',
+                    id=fig_anno_index,
+                    captureevents=True
+                )
 
-        elif triggered_id in ['legendFontSize', 'labelFontSize']:
-            fig = current_fig
+                annotations.append(new_annotation)
+                fig['layout']['annotations'] = annotations
+
+                cond, bbox, new_children = process_points(
+                    pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, new_annotation)
+                if cond:
+                    children += new_children
+        elif not is_anno_clicked and triggered_id in ['legendFontSize', 'labelFontSize']:
+            print("2")
             fig['layout']['font']['size'] = labelFontSize
             fig['layout']['legend']['font']['size'] = legendFontSize
-        elif isinstance(handle_triggered_id(triggered_id), dict):
-            if handle_triggered_id(triggered_id)["type"] == "delete-btn":
-                text_to_remove = None
-                new_child_list = []
-                for c in children:
-                    if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
-                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-                            for child in c['props']['children']:
-                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                    text_to_remove = child.get('props', {}).get('children')
-                                    break
-                    else:
-                        new_child_list.append(c)
-                children = new_child_list
-                annotations = [a for a in annotations if a['text']!= text_to_remove]
-                fig = current_fig
-                fig['layout']['annotations'] = annotations
-        else:
-            SW_traces = update_trace('SW', dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname)
-            LW_traces = update_trace('LW', dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname)
+        elif not is_anno_clicked and 'delete-btn' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
+            triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
+            text_to_remove = None
+            new_child_list = []
+            for c in children:
+                if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
+                    if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                        for child in c['props']['children']:
+                            if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                text_to_remove = child.get(
+                                    'props', {}).get('children')
+                                break
+                else:
+                    new_child_list.append(c)
+            children = new_child_list
+            annotations = [
+                a for a in annotations if a['text'] != text_to_remove]
+            fig['layout']['annotations'] = annotations
+        elif not is_anno_clicked:
+            print("4")
+            SW_traces = update_trace('SW', dataType, dataSelectionInput,
+                                     noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname)
+            LW_traces = update_trace('LW', dataType, dataSelectionInput,
+                                     noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname)
             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-                                x_title=next(option['label'] for option in xAxis_options if option['value'] == xAxis),
+                                x_title=next(
+                                    option['label'] for option in xAxis_options if option['value'] == xAxis),
                                 y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio')
 
             for trace in SW_traces:
@@ -1038,18 +893,19 @@ def update_plot(n_clicks_list, dataType, dataSelectionInput, noOfBins, xAxis, er
                 bin_edges = np.linspace(0, 2, noOfBins + 1)
                 colors = ["lightblue", "lightgray"]
                 shapes = [{'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
-                     'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)]
+                           'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)]
                 fig.update_layout(shapes=shapes)
 
             fig.update_layout(height=800, showlegend=True, legend=dict(font=dict(size=legendFontSize)),
                               font=dict(size=labelFontSize), hovermode="closest")
-            if len(annotations) >=2:
+            if len(annotations) >= 2:
                 annotations = []
                 children = []
             if triggered_id in ['dataType', 'url']:
                 children = []
 
-    return fig, children, annotations
+    return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click
+
 
 @dash_app.callback(
     Output('dropdown-message', 'children'),
