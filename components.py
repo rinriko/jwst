@@ -250,7 +250,6 @@ content = html.Div(id="page-content", children=[
                             # html.P(id='plot-title',
                             #        className='font-weight-bold'),
                             dcc.Store(id='annotations-store', data=[]),
-                            html.Div(id="output-div"),
                             dcc.Graph(id='plot-chart',
                                       className='bg-light', clear_on_unhover=True)]),
                             dcc.Tooltip(id="graph-tooltip"),
@@ -262,6 +261,7 @@ content = html.Div(id="page-content", children=[
                 dbc.Col(
                     [
                         dcc.Store(id='value-store', data=0),
+                        dcc.Store(id='image-data', data={}),
                         html.Div(id='image-container',
                                  style={'display': 'flex', 'flexWrap': 'wrap', 'margin-top': '20px'}),
                         dbc.Modal(
