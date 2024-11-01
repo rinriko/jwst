@@ -484,8 +484,6 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
     fig = go.Figure() if not current_fig else current_fig
     if children is None:
         children = []
-    if annotations is None:
-        annotations = current_fig['layout']['annotations']
     imgsrc = None
     modal_details = None
     if 'dynamic-img' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
@@ -645,6 +643,8 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                     next_number = 1
             else:
                 next_number = 1
+                if 'layout' not in current_fig['layout']:
+                    current_fig['layout']['annotations'] = []
                 annotations = current_fig['layout']['annotations']
             existing_ids = [anno.get('id')
                             for anno in annotations if 'id' in anno]
@@ -714,9 +714,9 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
             LW_traces = update_trace('LW', dataType, dataSelectionInput,
                                      noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname, pointSize, lineWidth)
             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-                                x_title=next(
-                                    option['label'] for option in xAxis_options if option['value'] == xAxis),
-                                y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
+                                # x_title=next(
+                                #     option['label'] for option in xAxis_options if option['value'] == xAxis),
+                                # y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
                                 )
 
             for trace in SW_traces:
@@ -730,27 +730,33 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 shapes = [{'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
                            'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)]
                 fig.update_layout(shapes=shapes)
-
-            fig.update_layout(height=800, showlegend=True, legend=dict(font=dict(size=legendFontSize)),
-                              font=dict(size=labelFontSize), hovermode="closest")
+            fig.update_layout(
+                height=800,
+                showlegend=True,
+                legend=dict(
+                    font=dict(size=legendFontSize),
+                    groupclick="toggleitem"  # Group click behavior
+                ),
+                font=dict(size=labelFontSize),
+                hovermode="closest"
+            )
+            fig.update_xaxes(
+                # tickangle = 90,
+                title_text = next(option['label'] for option in xAxis_options if option['value'] == xAxis),
+                title_font = {"size": 20},
+                title_standoff = 10,
+                row=2, col=1)
             
-            # fig.update_xaxes(
-            #     # tickangle = 90,
-            #     title_text = next(option['label'] for option in xAxis_options if option['value'] == xAxis),
-            #     title_font = {"size": 20},
-            #     title_standoff = 10,
-            #     row=2, col=1)
-            
-            # # Surface Brightness (MJy/sr), Signal-to-noise ratio
-            # fig.update_yaxes(
-            #     title_text = 'SW: Surf Bright (MJy/sr)' if pathname != "/noise" else 'SW: S/N Ratio',
-            #     title_standoff = 10,
-            #     row=1, col=1)
-            # fig.update_yaxes(
-            #     title_text = 'LW: Surf Bright (MJy/sr)' if pathname != "/noise" else 'LW: S/N Ratio',
-            #     title_standoff = 10,
-            #     row=2, col=1)
-            if len(annotations) >= 2:
+            # Surface Brightness (MJy/sr), Signal-to-noise ratio
+            fig.update_yaxes(
+                title_text = 'SW: Surf Bright (MJy/sr)' if pathname != "/noise" else 'SW: S/N Ratio',
+                title_standoff = 10,
+                row=1, col=1)
+            fig.update_yaxes(
+                title_text = 'LW: Surf Bright (MJy/sr)' if pathname != "/noise" else 'LW: S/N Ratio',
+                title_standoff = 10,
+                row=2, col=1)
+            if len(annotations) >= 0:
                 annotations = []
                 children = []
             if triggered_id in ['dataType', 'url']:
