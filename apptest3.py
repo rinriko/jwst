@@ -1,85 +1,35 @@
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
+import plotly.graph_objs as go
 
 app = dash.Dash(__name__)
 
-# Sample data for images
-images = [
-    {'src': 'https://via.placeholder.com/150?text={"image1"}', 'index': 0, 'annotation': 'Image 1'},
-    {'src': 'https://via.placeholder.com/150?text={"image2"}', 'index': 1, 'annotation': 'Image 2'},
-    {'src': 'https://via.placeholder.com/150?text={"image3"}', 'index': 2, 'annotation': 'Image 3'},
-    # Add more images as needed...
-]
+# Sample figure for demonstration
+sample_figure = {
+    "data": [go.Scatter(x=[1, 2, 3], y=[3, 1, 6], mode="markers")],
+    "layout": go.Layout(title="Right-click on this plot")
+}
 
-
-# Function to create the image divs dynamically
-def create_image_divs():
-    return [
-        html.Div(
-            style={'position': 'relative', 'margin': '10px'},
-            children=[
-                html.Img(
-                    src=img['src'],
-                    id={'type': 'dynamic-img', 'index': img['index']},
-                    style={'width': '150px', 'height': '150px', 'cursor': 'pointer'},
-                    title=img['annotation'],
-                    className='image'
-                ),
-                html.Button('×', id={'type': 'delete-btn', 'index': img['index']}, n_clicks=0, style={
-                    'background-color': 'red',
-                    'color': 'white',
-                    'border': 'none',
-                    'cursor': 'pointer',
-                    'position': 'absolute',
-                    'top': '5px',
-                    'right': '5px'
-                }),
-                html.Div(
-                    img['annotation'],
-                    style={
-                        'position': 'absolute',
-                        'top': '5px',
-                        'left': '5px',
-                        'background-color': 'rgba(0, 0, 0, 0.5)',
-                        'color': 'white',
-                        'padding': '2px 5px',
-                        'border-radius': '3px',
-                        'font-size': '12px',
-                        'font-weight': 'bold'
-                    }
-                )
-            ]
-        ) for img in images
-    ]
-
-# App layout
+# Dash layout
 app.layout = html.Div([
-    html.Div(id='image-container', style={'display': 'flex', 'flex-wrap': 'wrap'}, children=create_image_divs()),
-    dcc.Store(id='hovered-image')  # Store to manage hovered image state
+    dcc.Graph(id="example-graph", figure=sample_figure),
+    html.Div(id="custom-menu", style={"display": "none", "position": "absolute", "background": "#f9f9f9", 
+                                      "border": "1px solid #ccc", "zIndex": 1000})
 ])
 
-# Callback to manage hover state
+# Callback to show custom menu on right-click
 @app.callback(
-    Output('hovered-image', 'data'),
-    [Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL}, 'n_hovered')]
+    Output("custom-menu", "style"),
+    Input("example-graph", "relayoutData"),
+    [Input("example-graph", "n_clicks_timestamp")]
 )
-def on_image_hover(n_hovered):
-    hovered_index = [i for i, count in enumerate(n_hovered) if count is not None and count > 0]
-    return {'index': hovered_index[0]} if hovered_index else {'index': None}
+def show_custom_menu(relayoutData, click_timestamp):
+    # Update the style of the custom menu to make it appear at the mouse position
+    if click_timestamp is not None:
+        return {"display": "block", "left": f"{relayoutData['x']}px", 
+                "top": f"{relayoutData['y']}px"}
+    return {"display": "none"}
 
-# Callback to dynamically change the style of hovered image
-@app.callback(
-    Output({'type': 'dynamic-img', 'index': dash.dependencies.ALL}, 'style'),
-    Input('hovered-image', 'data')
-)
-def update_hovered_style(hovered_image):
-    styles = [{'border': 'none'}] * len(images)  # Reset styles
-    if hovered_image['index'] is not None:
-        index = hovered_image['index']
-        styles[index] = {'border': '2px solid blue'}  # Change border for hovered image
-    return styles
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True, port=8051)

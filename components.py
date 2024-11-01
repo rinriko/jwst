@@ -96,7 +96,25 @@ modal = html.Div(
                                     id='plotType', options=plotType_options, value='markers'),
                             ])
                         ])]),
-                    # html.Hr(),
+                    html.P('Point Size',
+                           style={'margin-top': '8px', 'margin-bottom': '4px'},
+                           className='font-weight-bold'),
+                    dcc.Slider(
+                        id='pointSize',
+                        min=1, max=20, step=1,
+                        value=8, marks={i: str(i) for i in range(0, 20, 5)},
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                    html.P('Line Size',
+                           style={'margin-top': '8px', 'margin-bottom': '4px'},
+                           className='font-weight-bold'),
+                    dcc.Slider(
+                        id='lineWidth',
+                        min=1, max=20, step=1,
+                        value=2, marks={i: str(i) for i in range(0, 20, 5)},
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                    html.Hr(),
                     html.P('Legend Font Size',
                            style={'margin-top': '8px', 'margin-bottom': '4px'},
                            className='font-weight-bold'),
@@ -115,6 +133,7 @@ modal = html.Div(
                         value=14, marks={i: str(i) for i in range(5, 31, 5)},
                         tooltip={"placement": "bottom", "always_visible": True}
                     ),
+                    html.Hr(),
                     html.P('Tooltip Font Size',
                            style={'margin-top': '8px', 'margin-bottom': '4px'},
                            className='font-weight-bold'),
@@ -311,17 +330,18 @@ content = html.Div(id="page-content", children=[
 ])
 
 color_list = [
-    "rgb(0, 0, 255)",    # Blue
-    "rgb(255, 0, 0)",    # Red
-    "rgb(0, 255, 0)",    # Green
-    "rgb(255, 165, 0)",  # Orange
-    "rgb(128, 0, 128)",  # Purple
-    "rgb(0, 255, 255)",  # Cyan
-    "rgb(255, 0, 255)",  # Magenta
-    "rgb(255, 192, 203)",  # Pink
-    "rgb(0, 0, 0)",      # Black
-    "rgb(128, 128, 128)"  # Gray
+    "rgb(0, 0, 216)",       # #0000d8 (Bright Blue)
+    "rgb(92, 53, 248)",     # #5c35f8 (Vibrant Blue)
+    "rgb(153, 97, 255)",    # #9961ff (Lavender Purple)
+    "rgb(206, 139, 255)",   # #ce8bff (Light Purple)
+    "rgb(231, 191, 251)",   # #e7bffb (Pale Lilac)
+    "rgb(253, 192, 69)",    # #fdc045 (Bright Yellow-Orange)
+    "rgb(220, 145, 18)",    # #dc9112 (Golden Orange)
+    "rgb(178, 102, 1)",     # #b26601 (Dark Orange)
+    "rgb(134, 64, 0)",      # #864000 (Burnt Orange)
+    "rgb(92, 27, 0)"        # #5c1b00 (Deep Brown)
 ]
+
 
 
 def weightedAvg(element, error):
@@ -368,7 +388,7 @@ def normalAvg(element, error):
     return avg, avgErr
 
 
-def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate, plotType, errorBars, name, wave_type, color_index):
+def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate, plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth):
     traces = []
     color = color_list[color_index % len(color_list)]
     common_props = {
@@ -379,8 +399,8 @@ def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate
         'name': f"{name} ({len(y_value)})",
         'legendgroup': wave_type.lower(),
         'legendgrouptitle_text': f"{wave_type} Group",
-        'marker': {'color': color},
-        'line': {'color': color},
+        'marker': {'color': color, 'size': pointSize}, 
+        'line': {'color': color, 'width': lineWidth},  
         'customdata': customdata,
         'hoverinfo': hoverinfo,
         'hovertemplate': hovertemplate
@@ -421,7 +441,7 @@ def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate
     return traces
 
 
-def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname):
+def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname, pointSize, lineWidth):
     traces = []
     color_index = 0
     if pathname == "/noise":
@@ -575,10 +595,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                 # y_value2 = y_temp2
                 # # ==================================
             traces.extend(create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate,
-                          plotType, errorBars, name, wave_type, color_index))
+                          plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth))
             # # ===================== For checking
             # traces.extend(create_trace(x_value2, y_value2, e_value2, customdata, hovertemplate,
-            #               plotType, errorBars, name+" normal avg ", wave_type, color_index+1))
+            #               plotType, errorBars, name+" normal avg ", wave_type, color_index+1, pointSize, lineWidth))
             # # ===================================
         elif dataType == 'raw':
             # hovertemplate = ('Y-Axis: %{y}<br>'
@@ -606,7 +626,7 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                 y_temp = [y/e for y, e in zip(y_value, e_value)]
                 y_value = y_temp
             traces.extend(create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate,
-                          plotType, errorBars, name, wave_type, color_index))
+                          plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth))
         color_index = color_index+1
     return traces
 

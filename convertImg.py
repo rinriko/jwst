@@ -2,36 +2,63 @@ import matplotlib.pyplot as plt
 from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
-
-import matplotlib.pyplot as plt
 from astropy import units as u
+from astropy.visualization import ZScaleInterval, SqrtStretch, ImageNormalize
+import matplotlib.pyplot as plt
+from astropy.wcs import WCS
+from astropy.io import fits
+from astropy.visualization import ZScaleInterval, SqrtStretch, LogStretch, AsinhStretch, LinearStretch, ImageNormalize
 
-from astropy.visualization import (ZScaleInterval, SqrtStretch, ImageNormalize)
 
 def convertToPNG(theSlice, filepath):
     
     s = theSlice
     filename = filepath 
-    
-    hdu = fits.open(filename)[1] #Why are there two headers
-    wcs = WCS(hdu.header) # create wcs object
+    hdu = fits.open(filename)[1]  # Access the FITS data (typically second extension for image data)
+    wcs = WCS(hdu.header, naxis=2)  # Create WCS object
     image_data = hdu.data
-    hdu.header # 3 axis
+    hdu.header  # Header with 3 axes
 
-    #adjust scale
-    norm = ImageNormalize(image_data[s, :, :], interval=ZScaleInterval())
+    # Define stretch functions with corresponding names
+    stretches = [
+        (None, "No Stretch"),  # Case with no stretch
+        (SqrtStretch(), "Sqrt Stretch"),
+        (LogStretch(), "Log Stretch"),
+        (AsinhStretch(), "Asinh Stretch"),
+        (LinearStretch(), "Linear Stretch")
+    ]
 
-    #axes object
-    ax = plt.subplot(projection=wcs, slices=('x', 'y', s)) # RA on X axis, Dec on Y axis for the slice s
-    ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm) #order of axis is reversed???
+    for stretch, stretch_name in stretches:
+        # Adjust scale with the stretch function if provided, else only interval
+        if stretch is not None:
+            norm = ImageNormalize(image_data[s, :, :], interval=ZScaleInterval(), stretch=stretch)
+        else:
+            norm = ImageNormalize(image_data[s, :, :], interval=ZScaleInterval())
 
-    ra = ax.coords[0]
-    dec = ax.coords[1]
+        # Create axes with WCS projection
+        fig, ax = plt.subplots(figsize=(10, 8),subplot_kw={'projection': wcs, 'slices': ('x', 'y')})
+        img = ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm)
 
-    ra.set_axislabel('Right Ascension')
-    dec.set_axislabel('Declination')
+        # Set axis labels
+        ra = ax.coords[0]
+        dec = ax.coords[1]
+        ra.set_axislabel('Right Ascension', fontsize=20)
+        dec.set_axislabel('Declination', fontsize=20)
 
-    plt.savefig('zsqrt_slice%s_seg001_nrcb1.png' % s)
+        # Add the title with the stretch name
+        ax.set_title(f'{stretch_name}', fontsize=20)
+
+        # Adding a color bar legend
+        cbar = plt.colorbar(img, ax=ax, orientation="vertical", pad=0.1)
+        cbar.set_label('Intensity', rotation=90, labelpad=15, fontsize=20)
+
+        # Save the image with the legend, differentiated by stretch name
+        plt.savefig(f'ImglongZsqrt_slice{s}_{stretch_name.replace(" ", "_").lower()}.png')
+
+        # Show and clear each plot to avoid overlay
+        # plt.show()
+        # plt.close()
+
 
 name = r'C:\Users\avmcc\Downloads\JWSTTiming-mains\JWSTTiming-main\MAST_2024-06-06T1429\MAST_2024-06-06T1429\JWST\jw01666001001_02102_00001-seg001_nrcb1\jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits'
 name = "T:\MAST_2023-10-07T0548\JWST\jw01666001001_02102_00001-seg001_nrcb1\jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits"
