@@ -161,7 +161,8 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
         "type"), customdata.get("r_in"), customdata.get("r_out")
     # fig_anno_index = f"{wavetype}_{phase}"
     # point_index = f"c{curveNumber}pid{pointIndex}"
-    point_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
+    point_index = f"{wavetype}_{phase}"
+    # point_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
 
     if "datatype" in customdata:
         return False, bbox, []
@@ -174,6 +175,7 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
         mjd_value = customdata.get("mjd", "N/A")
         time_value = customdata.get("time", "N/A")
         phase_value = customdata.get("phase", "N/A")
+        wavetype = customdata.get("type", "N/A")
         # Create a formatted string for each
         y_text = f'Y-Axis: {y_value:,.5f}'
         mjd_text = f'MJD: {mjd_value:,.5f}' if isinstance(
@@ -186,61 +188,59 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
         # Combine the paths
         file_path = f"{config.IMG_URI}{filename}"
         # Check if the file exists
-        if Path(file_path).exists():
-            if filename not in imglist:
-                imglist.append(filename)
+        if filename not in imglist:
+            imglist.append(filename)
+            if Path(file_path).exists():
                 img_src = file_path
-                img_data[img_src] = {
-                    'img_src': img_src,
-                    'mjd_text': mjd_text,
-                    'time_text': time_text,
-                    'phase_text': phase_text,
-                    'point_index': point_index,
-                    'customdata': customdata,
-                    'filename': customdata.get('filename', 'N/A')
-                }
-                img_data[img_src]['img_details'] = []
-                img_data[file_path]['img_details'].append({
-                    'y_text': y_text,
-                    'color': color,
-                    'r_in': customdata["r_in"],
-                    'r_out': customdata["r_out"],
-                })
             else:
                 img_src = None
-                img_data[file_path]['img_details'].append({
-                    'y_text': y_text,
-                    'color': color,
-                    'r_in': customdata["r_in"],
-                    'r_out': customdata["r_out"],
-                })
+
+            img_data[img_src] = {
+                'img_src': img_src,
+                'mjd_text': mjd_text,
+                'time_text': time_text,
+                'type': wavetype,
+                'phase_value': phase_value,
+                'phase_text': phase_text,
+                'point_index': point_index,
+                'customdata': customdata,
+                'filename': customdata.get('filename', 'N/A')
+            }
         else:
-            if filename not in imglist:
-                imglist.append(filename)
-                img_data[img_src] = {
-                    'img_src': img_src,
-                    'mjd_text': mjd_text,
-                    'time_text': time_text,
-                    'phase_text': phase_text,
-                    'point_index': point_index,
-                    'customdata': customdata,
-                    'filename': customdata.get('filename', 'N/A')
-                }
-                img_data[img_src]['img_details'] = []
-                img_data[img_src]['img_details'].append({
-                    'y_text': y_text,
-                    'color': color,
-                    'r_in': customdata["r_in"],
-                    'r_out': customdata["r_out"],
-                })
-            else:
-                img_data[img_src]['img_details'].append({
-                    'y_text': y_text,
-                    'color': color,
-                    'r_in': customdata["r_in"],
-                    'r_out': customdata["r_out"],
-                })
-                img_src = None
+            img_src = None
+        # if Path(file_path).exists():
+        #     if filename not in imglist:
+        #         imglist.append(filename)
+        #         img_src = file_path
+        #         img_data[img_src] = {
+        #             'img_src': img_src,
+        #             'mjd_text': mjd_text,
+        #             'time_text': time_text,
+        #             'type':wavetype,
+        #             'phase_value': phase_value,
+        #             'phase_text': phase_text,
+        #             'point_index': point_index,
+        #             'customdata': customdata,
+        #             'filename': customdata.get('filename', 'N/A')
+        #         }
+        #     else:
+        #         img_src = None
+        # else:
+        #     if filename not in imglist:
+        #         imglist.append(filename)
+        #         img_data[img_src] = {
+        #             'img_src': img_src,
+        #             'mjd_text': mjd_text,
+        #             'time_text': time_text,
+        #             'type':wavetype,
+        #             'phase_value': phase_value,
+        #             'phase_text': phase_text,
+        #             'point_index': point_index,
+        #             'customdata': customdata,
+        #             'filename': customdata.get('filename', 'N/A')
+        #         }
+        #     else:
+        #         img_src = None
 
         if type == 'hover':
             fontSize = f'{tooltipFontSize}px'
@@ -282,11 +282,11 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
         for img_src, data in img_data.items():
             mjd_text = data['mjd_text']
             time_text = data['time_text']
+            wavetype = data['type']
+            phase_value = data['phase_value']
             phase_text = data['phase_text']
             point_index = data['point_index']
-            img_details = data['img_details']
             customdata = data['customdata']
-            img_details_json = json.dumps(img_details)
             customdata_json = json.dumps(customdata)
             children.append(
                 html.Div([
@@ -334,9 +334,10 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
                     id={'type': 'dynamic-div-img', 'index': point_index},
                     # Adding custom data attributes here
                     **{
-                    'data-img-details': img_details_json,
                     'data-mjd-text': mjd_text,
                     'data-time-text': time_text,
+                    'data-phase-value': phase_value,
+                    'data-wave-type': wavetype,
                     'data-phase-text': phase_text,
                     'data-filename': customdata.get('filename', 'N/A'),
                     'data-img-src': img_src,
@@ -441,6 +442,9 @@ def update_plot_title(dataType, pathname):
     Output('image-container', 'children'),
     Output('annotations-store', 'data'),
     Output('annotations-clicked', 'data'),
+    Output('annotations-mapping', 'data'),
+    Output('plot-chart', 'clickData'),
+    Output('plot-chart', 'clickAnnotationData'),
     Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
           'src': dash.dependencies.ALL}, 'n_clicks'),
     Input('close-modal', 'n_clicks'),
@@ -469,12 +473,13 @@ def update_plot_title(dataType, pathname):
     State('tooltipFontSize', 'value'),
     State('thumnailsSize', 'value'),
     State('annotations-store', 'data'),
+    State('annotations-mapping', 'data'),
     State('annotations-clicked', 'data'),
 )
 def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType,
                       noOfDataPoint, legendFontSize, labelFontSize, pathname, clickData, clickAnnotationData, pointSize, lineWidth,
                       data, children, is_open, timestamps, current_fig, dataSelectionState, tooltipFontSize, thumnailsSize,
-                      annotations, anno_clicked):
+                      annotations, annotation_mapping, anno_clicked):
     ctx = dash.callback_context
     if not ctx.triggered:
         return is_open, None, None, data, go.Figure(), children, annotations
@@ -484,8 +489,12 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
     fig = go.Figure() if not current_fig else current_fig
     if children is None:
         children = []
+    if annotation_mapping is None:
+        annotation_mapping = {}
     imgsrc = None
     modal_details = None
+    print(clickData)
+    print(clickAnnotationData)
     if 'dynamic-img' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
         triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
         valid_timestamps = [
@@ -498,11 +507,10 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 data = latest_click
                 # Extract the custom data attributes
                 for a in annotations:
-                    if "id" in a:
-                        if a["id"] == eval(triggered_id)['index']:
-                            a["bgcolor"] = "red"
-                        else:
-                            a["bgcolor"] = "black"
+                    if a["text"] == annotation_mapping[eval(triggered_id)['index']]:
+                        a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                    else:
+                        a["bgcolor"] = "black"
                 fig['layout']['annotations'] = annotations
 
                 for c in children:
@@ -510,13 +518,15 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         if c.get('type') == 'Div' and c.get('props', {}).get('children'):
                             for child in c['props']['children']:
                                 if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                    child['props']['style']['background-color'] = 'rgba(255, 0, 0, 0.7)'
+                                    child['props']['style']['background-color'] = 'rgba(0, 240, 255, 0.7)'
+                                    child['props']['style']['color'] = 'rgba(0, 0, 0, 1)'
                                     break
                     else:
                         if c.get('type') == 'Div' and c.get('props', {}).get('children'):
                             for child in c['props']['children']:
                                 if child.get('type') == 'Div' and child.get('props', {}).get('children'):
                                     child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
 
                 for child in children:
@@ -524,20 +534,16 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         # Access the custom data attributes from `data-*`
                         mjd_text = child['props'].get('data-mjd-text', 'N/A')
                         time_text = child['props'].get('data-time-text', 'N/A')
-                        phase_text = child['props'].get(
-                            'data-phase-text', 'N/A')
+                        phase_text = child['props'].get('data-phase-text', 'N/A')
+                        phase_value = child['props'].get('data-phase-value', 'N/A')
+                        wavetype = child['props'].get('data-wave-type', 'N/A')
                         filename_full = child['props'].get(
                             'data-filename', 'N/A')
                         img_src = child['props'].get('data-img-src', 'N/A')
                         point_index = child['props'].get(
                             'data-point-index', 'N/A')
                         color = child['props'].get('data-color', 'N/A')
-
-                        # Retrieve and deserialize JSON attributes if they exist
-                        img_details_json = child['props'].get(
-                            'data-img-details', '[]')
-                        img_details = json.loads(
-                            img_details_json) if img_details_json else []
+                        print(phase_value)
                         customdata_json = child['props'].get(
                             'data-customdata', '{}')
                         customdata = json.loads(
@@ -570,22 +576,46 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         ]
                         # print(dataSelectionState)
                         # Dynamically create HTML elements for each y_text and color in img_details
-                        for detail in img_details:
-                            y_text_item = detail.get('y_text', 'N/A')
-                            color_item = detail.get('color', 'N/A')
-                            r_in = detail.get('r_in', 'N/A')
-                            r_out = detail.get('r_out', 'N/A')
-                            modal_details.append(
-                                html.Div([
-                                    html.Span(
-                                        style={"backgroundColor": color_item, "borderRadius": "50%",
-                                               "display": "inline-block", "width": "10px", "height": "10px", "marginRight": "5px"}
-                                    ),
-                                    html.P(f"(r_in: {r_in}, r_out: {r_out}) {y_text_item} ", style={
-                                           "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size})
-                                ], style={"display": "flex", "alignItems": "center"})
-                            )
-                        break
+                        for color_index, trace in enumerate(current_fig['data']):
+                            customdata_values = trace.get("customdata", [])
+                            y = trace.get("y", [])
+                            color_item = color_list[(color_index % int(len(current_fig['data'])/2)) % len(color_list)]
+                            # Iterate over customdata to check for matching phase values
+                            for i, customdata_point in enumerate(customdata_values):
+                                if customdata_point.get("type") != wavetype:
+                                    break
+                                if customdata_point.get("phase") == phase_value:
+                                    y_value = y[i]
+                                    r_in = customdata_point.get('r_in', 'N/A')
+                                    r_out = customdata_point.get('r_out', 'N/A')
+                                    y_text_item = f'Y-Axis: {y_value:,.5f}'
+                                    modal_details.append(
+                                        html.Div([
+                                            html.Span(
+                                                style={"backgroundColor": color_item, "borderRadius": "50%",
+                                                    "display": "inline-block", "width": "10px", "height": "10px", "marginRight": "5px"}
+                                            ),
+                                            html.P(f"(r_in: {r_in}, r_out: {r_out}) {y_text_item} ", style={
+                                                "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size})
+                                        ], style={"display": "flex", "alignItems": "center"})
+                                    )
+                                    break
+                        # for detail in img_details:
+                        #     y_text_item = detail.get('y_text', 'N/A')
+                        #     color_item = detail.get('color', 'N/A')
+                        #     r_in = detail.get('r_in', 'N/A')
+                        #     r_out = detail.get('r_out', 'N/A')
+                        #     modal_details.append(
+                        #         html.Div([
+                        #             html.Span(
+                        #                 style={"backgroundColor": color_item, "borderRadius": "50%",
+                        #                        "display": "inline-block", "width": "10px", "height": "10px", "marginRight": "5px"}
+                        #             ),
+                        #             html.P(f"(r_in: {r_in}, r_out: {r_out}) {y_text_item} ", style={
+                        #                    "margin": "2px 0", "lineHeight": "1.1", "fontSize": common_font_size})
+                        #         ], style={"display": "flex", "alignItems": "center"})
+                        #     )
+                        # break
                 is_open = not is_open
                 imgsrc = eval(triggered_id)['src'].replace(
                     "thumbnails", "full-size")
@@ -597,14 +627,13 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
 
     elif pathname != '/matrix':
         if triggered_id == 'plot-chart' and clickAnnotationData:
-            if clickAnnotationData["annotation"]["id"] != anno_click:
-                anno_click = clickAnnotationData["annotation"]["id"]
+            if annotation_mapping[clickAnnotationData["annotation"]["text"]] != anno_click:
+                anno_click = annotation_mapping[clickAnnotationData["annotation"]["text"]]
                 for a in annotations:
-                    if "id" in a:
-                        if a["id"] == anno_click:
-                            a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
-                        else:
-                            a["bgcolor"] = "black"
+                    if a["text"] == clickAnnotationData["annotation"]["text"]:
+                        a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                    else:
+                        a["bgcolor"] = "black"
 
                 for c in children:
                     if c.get('props', {}).get('id', {}).get('index') == anno_click:
@@ -633,7 +662,9 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 "type"), customdata.get("r_in"), customdata.get("r_out")
             xref, yref = ("x", "y") if curveNumber < len(
                 dataSelectionInput) else ("x2", "y2")
-            fig_anno_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
+            fig_anno_index = f"{wavetype}_{phase}"
+            # fig_anno_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
+            clicked_phase = phase
             if annotations:
                 try:
                     last_annotation = annotations[-1]
@@ -646,41 +677,74 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 if 'layout' not in current_fig['layout']:
                     current_fig['layout']['annotations'] = []
                 annotations = current_fig['layout']['annotations']
-            existing_ids = [anno.get('id')
-                            for anno in annotations if 'id' in anno]
+            existing_ids = [key for key in annotation_mapping if 'No.' not in key]
 
             if fig_anno_index not in existing_ids:
-                new_annotation = dict(
-                    x=x,
-                    y=y,
-                    xref=xref,
-                    yref=yref,
-                    text=f"No. {next_number}",
-                    showarrow=True,
-                    arrowhead=7,
-                    xanchor="center",
-                    yanchor="bottom",
-                    ax=0,
-                    ay=-40,
-                    # Increased font size and changed color
-                    font=dict(color='white', size=14),
-                    bgcolor='black',  # Background color for the text
-                    bordercolor='black',  # Border color
-                    borderwidth=2,  # Width of the border
-                    borderpad=4,  # Padding around the text inside the border
-                    arrowcolor='black',
-                    # clicktoshow='onoff',
-                    id=fig_anno_index,
-                    captureevents=True
-                )
-
-                annotations.append(new_annotation)
+                for trace in current_fig['data']:
+                    customdata_values = trace.get("customdata", [])
+                    # Iterate over customdata to check for matching phase values
+                    for i, customdata_point in enumerate(customdata_values):
+                        if customdata_point.get("type") != wavetype:
+                            break
+                        if customdata_point.get("phase") == clicked_phase:
+                            # Create an annotation at the top for the matched phase
+                            new_annotation = dict(
+                                x=trace["x"][i],
+                                y=trace["y"][i],  # Offset above max y for visibility
+                                xref=xref,
+                                yref=yref,
+                                text=f"No. {next_number}",
+                                showarrow=True,
+                                arrowhead=7,
+                                xanchor="center",
+                                yanchor="bottom",
+                                ax=0,
+                                ay=-40,
+                                font=dict(color='white', size=14),
+                                bgcolor='black',
+                                bordercolor='black',
+                                borderwidth=2,
+                                borderpad=4,
+                                arrowcolor='black',
+                                # id=fig_anno_index,
+                                captureevents=True
+                            )
+                            annotation_mapping[fig_anno_index] = f"No. {next_number}"
+                            annotation_mapping[f"No. {next_number}"] = fig_anno_index
+                            # Add the annotation
+                            annotations.append(new_annotation)
+                next_number += 1
+                # annotations.append(new_annotation)
                 fig['layout']['annotations'] = annotations
 
                 cond, bbox, new_children = process_points(
                     pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, new_annotation)
                 if cond:
                     children += new_children
+            else:
+                # print(fig_anno_index)
+                for a in annotations:
+                    if a["text"] == annotation_mapping[fig_anno_index]:
+                        a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                    else:
+                        a["bgcolor"] = "black"
+                fig['layout']['annotations'] = annotations
+
+                for c in children:
+                    if c.get('props', {}).get('id', {}).get('index') == fig_anno_index:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(0, 240, 255, 0.7)'
+                                    child['props']['style']['color'] = 'rgba(0, 0, 0, 1)'
+                                    break
+                    else:
+                        if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+                            for child in c['props']['children']:
+                                if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
+                                    break
         elif not is_anno_clicked and triggered_id in ['legendFontSize', 'labelFontSize', 'pointSize', 'lineWidth']:
             for trace in fig["data"]:
                 trace["marker"]['size'] = pointSize
@@ -691,21 +755,16 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
         elif not is_anno_clicked and 'delete-btn' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
             # print("3")
             triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
-            text_to_remove = None
+            text_to_remove = annotation_mapping[eval(triggered_id)['index']]
             new_child_list = []
+            del annotation_mapping[text_to_remove]
+            del annotation_mapping[eval(triggered_id)['index']]
             for c in children:
-                if c.get('props', {}).get('id', {}).get('index') == eval(triggered_id)['index']:
-                    if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-                        for child in c['props']['children']:
-                            if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                text_to_remove = child.get(
-                                    'props', {}).get('children')
-                                break
-                else:
+                if c.get('props', {}).get('id', {}).get('index') != eval(triggered_id)['index']:
                     new_child_list.append(c)
             children = new_child_list
-            annotations = [
-                a for a in annotations if a['text'] != text_to_remove]
+            # annotations = [a for a in annotations if a['id'] != eval(triggered_id)['index']]
+            annotations = [a for a in annotations if a['text'] != text_to_remove]
             fig['layout']['annotations'] = annotations
         elif not is_anno_clicked:
             # print("4")
@@ -756,13 +815,65 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 title_text = 'LW: Surf Bright (MJy/sr)' if pathname != "/noise" else 'LW: S/N Ratio',
                 title_standoff = 10,
                 row=2, col=1)
-            if len(annotations) >= 0:
+            if len(fig["data"]) <= 0:
                 annotations = []
                 children = []
+                annotation_mapping = {}
+                anno_click = ""
+            else:
+                new_annotation_list = []
+                new_next_number = 1
+                existing_ids = [key for key in annotation_mapping if 'No.' not in key]
+                for ex_id in existing_ids:
+                    wavetype, clicked_phase = ex_id.split('_')
+                    
+                    for trace in fig['data']:
+                        # print(trace)
+                        if trace["legendgroup"] == wavetype:
+                            xref = trace["xaxis"]
+                            yref = trace["yaxis"]
+                            # print(xref,yref)
+                            customdata_values = trace["customdata"] if hasattr(trace, 'customdata') else []
+                            # Iterate over customdata to check for matching phase values
+                            for i, customdata_point in enumerate(customdata_values):
+                                if str(customdata_point.get("phase")) == clicked_phase:
+                                    # print("found", new_next_number)
+                                    # Create an annotation at the top for the matched phase
+                                    new_annotation = dict(
+                                        x=trace["x"][i],
+                                        y=trace["y"][i],  # Offset above max y for visibility
+                                        xref=xref,
+                                        yref=yref,
+                                        text=annotation_mapping[ex_id],
+                                        showarrow=True,
+                                        arrowhead=7,
+                                        xanchor="center",
+                                        yanchor="bottom",
+                                        ax=0,
+                                        ay=-40,
+                                        font=dict(color='white', size=14),
+                                        bgcolor='black',
+                                        bordercolor='black',
+                                        borderwidth=2,
+                                        borderpad=4,
+                                        arrowcolor='black',
+                                        # id=ex_id,
+                                        captureevents=True
+                                    )
+                                    if ex_id == anno_click:
+                                        new_annotation["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                                    fig.add_annotation(new_annotation)
+                                    # Add the annotation
+                                    new_annotation_list.append(new_annotation)
+                    new_next_number += 1
+                # print(new_annotation_list)
+                # fig.update_layout(annotations=new_annotation_list) 
+                annotations = new_annotation_list
+
             if triggered_id in ['dataType', 'url']:
                 children = []
     # fig.update_layout(template="plotly_dark")
-    return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click
+    return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None
 
 
 @dash_app.callback(
