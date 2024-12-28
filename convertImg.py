@@ -8,23 +8,26 @@ import matplotlib.pyplot as plt
 from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.visualization import ZScaleInterval, SqrtStretch, LogStretch, AsinhStretch, LinearStretch, ImageNormalize
-
+import numpy as np
 
 def convertToPNG(theSlice, filepath):
-    
     s = theSlice
     filename = filepath 
     hdu = fits.open(filename)[1]  # Access the FITS data (typically second extension for image data)
     wcs = WCS(hdu.header, naxis=2)  # Create WCS object
     image_data = hdu.data
     hdu.header  # Header with 3 axes
+    # Print the header to see details
+    print("FITS Header:")
+    print(hdu.header)
+
 
     # Define stretch functions with corresponding names
     stretches = [
-        (None, "No Stretch"),  # Case with no stretch
-        (SqrtStretch(), "Sqrt Stretch"),
-        (LogStretch(), "Log Stretch"),
-        (AsinhStretch(), "Asinh Stretch"),
+        # (None, "No Stretch"),  # Case with no stretch
+        # (SqrtStretch(), "Sqrt Stretch"),
+        # (LogStretch(), "Log Stretch"),
+        # (AsinhStretch(), "Asinh Stretch"),
         (LinearStretch(), "Linear Stretch")
     ]
 
@@ -38,23 +41,24 @@ def convertToPNG(theSlice, filepath):
         # Create axes with WCS projection
         fig, ax = plt.subplots(figsize=(10, 8),subplot_kw={'projection': wcs, 'slices': ('x', 'y')})
         img = ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm)
-
+        
         # Set axis labels
         ra = ax.coords[0]
         dec = ax.coords[1]
         ra.set_axislabel('Right Ascension', fontsize=20)
         dec.set_axislabel('Declination', fontsize=20)
-
+        # ==================================================
+        
+        # ==================================================
         # Add the title with the stretch name
         ax.set_title(f'{stretch_name}', fontsize=20)
 
         # Adding a color bar legend
         cbar = plt.colorbar(img, ax=ax, orientation="vertical", pad=0.1)
-        cbar.set_label('Intensity', rotation=90, labelpad=15, fontsize=20)
+        cbar.set_label('Intensity', rotation=90, labelpad=10, fontsize=20)
 
         # Save the image with the legend, differentiated by stretch name
         plt.savefig(f'ImglongZsqrt_slice{s}_{stretch_name.replace(" ", "_").lower()}.png')
-
         # Show and clear each plot to avoid overlay
         # plt.show()
         # plt.close()

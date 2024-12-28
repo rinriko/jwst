@@ -252,6 +252,9 @@ sidebar = html.Div(
                                     id='errorBars', options=errorBars_options, value='hide'),
                             ])
                         ])]),
+                    html.Hr(),
+                    dbc.Button("Download Data", id="btn-download", className="ml-auto", n_clicks=0),
+                    dcc.Download(id="download-data")
                 ]
                 )
             ],

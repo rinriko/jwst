@@ -45,6 +45,44 @@ dash_app.layout = dbc.Container(
 
 # sidebar
 
+@dash_app.callback(
+    Output("download-data", "data"),
+    Input("btn-download", "n_clicks"),
+    State('plot-chart', 'figure'),
+    prevent_initial_call=True
+)
+def download_data(n_clicks, fig):
+    import pandas as pd
+    from io import StringIO
+
+    # Initialize a list to hold the data from all traces
+    all_data = []
+
+    # Loop through each trace in the figure to extract data
+    for trace in fig['data']:
+        if 'x' in trace and 'y' in trace:
+            # Create a DataFrame for the trace
+            trace_data = pd.DataFrame({
+                'Phase': trace['x'],
+                'Average flux': trace['y'],
+                # Include any other relevant attributes
+            })
+            # Optionally, add a column to identify the trace
+            trace_data['trace_name'] = trace['name']
+            all_data.append(trace_data)
+
+    # Concatenate all DataFrames into a single DataFrame
+    if all_data:
+        combined_df = pd.concat(all_data, ignore_index=True)
+    else:
+        combined_df = pd.DataFrame()  # Empty DataFrame if no traces
+
+    # Convert DataFrame to CSV
+    csv_string = combined_df.to_csv(index=False)
+
+    # Return the CSV as a downloadable response
+    return dict(content=csv_string, filename="plot_data.csv")
+
 
 @dash_app.callback(
     Output('noOfBins', 'value'),
@@ -493,8 +531,8 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
         annotation_mapping = {}
     imgsrc = None
     modal_details = None
-    print(clickData)
-    print(clickAnnotationData)
+    # print(clickData)
+    # print(clickAnnotationData)
     if 'dynamic-img' in ctx.triggered[0]['prop_id'].split('.n_clicks')[0]:
         triggered_id = ctx.triggered[0]['prop_id'].split('.n_clicks')[0]
         valid_timestamps = [
@@ -543,7 +581,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         point_index = child['props'].get(
                             'data-point-index', 'N/A')
                         color = child['props'].get('data-color', 'N/A')
-                        print(phase_value)
+                        # print(phase_value)
                         customdata_json = child['props'].get(
                             'data-customdata', '{}')
                         customdata = json.loads(
@@ -888,10 +926,17 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
     Input('xAxis', 'value'),
     Input('plotType', 'value'),
     Input('noOfDataPoint', 'value'),
-    Input("url", "pathname")
+    Input("url", "pathname"),
+    Input('labelFontSize', 'value'),
+    State('scatter-matrix-sw', 'figure'),
+    State('scatter-matrix-lw', 'figure'),
 )
-def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType, noOfDataPoint, pathname):
-    # Return empty figures if the pathname doesn't match
+def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType, noOfDataPoint, pathname, labelFontSize,fig_sw, fig_lw):
+    # Return empty figures if the pathname doesn't match    
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return '', 'mjd', empty_fig, empty_fig
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     empty_fig = go.Figure()
     if pathname == "/matrix":
         if not dataSelection or len(dataSelection) < 2:
@@ -899,6 +944,11 @@ def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType,
         epochs = [get_epoch(value) for value in dataSelection]
         if len(set(epochs)) > 1:
             return 'Please select options from the same epoch.', 'mjd', empty_fig, empty_fig
+        elif triggered_id in ['labelFontSize']:
+            print(fig_sw['layout'])
+            fig_sw['layout']['font']['size'] = labelFontSize
+            fig_lw['layout']['font']['size'] = labelFontSize
+            return '', 'mjd', fig_sw, fig_lw
         else:
             df_SW = update_df('SW', dataType, dataSelection,
                               plotType, noOfDataPoint)
@@ -912,13 +962,13 @@ def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType,
             fig2.update_traces(diagonal_visible=False)
             # Update layout for SW plots
             fig1.update_layout(title='SW Scatter Matrix', height=600, showlegend=True, legend=dict(
-                groupclick="toggleitem"), hovermode="x")
+                groupclick="toggleitem"), hovermode="x", font=dict(size=labelFontSize))
             fig1.update_traces(marker_line=dict(
                 width=0.1, color="black"), opacity=0.9)
 
             # Update layout for LW plots
             fig2.update_layout(title='LW Scatter Matrix', height=600, showlegend=True, legend=dict(
-                groupclick="toggleitem"), hovermode="x")
+                groupclick="toggleitem"), hovermode="x", font=dict(size=labelFontSize))
             fig2.update_traces(marker_line=dict(
                 width=0.1, color="black"), opacity=0.9)
 
