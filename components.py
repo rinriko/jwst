@@ -395,6 +395,7 @@ def normalAvg(element, error):
 def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate, plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth):
     traces = []
     color = color_list[color_index % len(color_list)]
+    print(customdata)
     common_props = {
         'x': x_value,
         'y': y_value,
@@ -523,7 +524,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                             'mjd': time_mjd_phase[bin_mask].mean(),
                             'time': Time(time_mjd_phase[bin_mask].mean(), format="mjd", scale="tdb").datetime,
                             'phase': (bin_edges[i] + bin_edges[i+1]) / 2,
-                            'datatype': "average"
+                            'datatype': "average",
+                            'phase_list': np.array(phase_values_phase)[bin_mask]
                         })
                         # # ===================== For checking
                         # x_value2.append((bin_edges[i] + bin_edges[i+1]) / 2)
@@ -549,7 +551,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'mjd': time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
                         'time': Time(time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(), format="mjd", scale="tdb").datetime,
                         'phase': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
-                        'datatype': "average"
+                        'datatype': "average",
+                        'phase_list': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint]
                     })
 
                     # # ===================== For checking
@@ -576,7 +579,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'mjd': time_mjd[remaining_start_idx:].mean(),
                         'time': Time(time_mjd[remaining_start_idx:].mean(), format="mjd", scale="tdb").datetime,
                         'phase': phase_values[remaining_start_idx:].mean(),
-                        'datatype': "average"
+                        'datatype': "average",
+                        'phase_list': phase_values[remaining_start_idx:]
                     })
                     # # ===================== For checking
                     # avg, avgErr = normalAvg(remaining_fluxes, remaining_flux_uncs)

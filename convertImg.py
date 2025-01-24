@@ -5,15 +5,18 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy import units as u
 from astropy.visualization import ZScaleInterval, SqrtStretch, ImageNormalize
 import matplotlib.pyplot as plt
-from astropy.wcs import WCS
+from astropy.wcs import WCS, FITSFixedWarning
 from astropy.io import fits
 from astropy.visualization import ZScaleInterval, SqrtStretch, LogStretch, AsinhStretch, LinearStretch, ImageNormalize
 import numpy as np
+from astropy.coordinates import SkyCoord
+import warnings
 
 def convertToPNG(theSlice, filepath):
     s = theSlice
     filename = filepath 
     hdu = fits.open(filename)[1]  # Access the FITS data (typically second extension for image data)
+
     wcs = WCS(hdu.header, naxis=2)  # Create WCS object
     image_data = hdu.data
     hdu.header  # Header with 3 axes
@@ -39,8 +42,16 @@ def convertToPNG(theSlice, filepath):
             norm = ImageNormalize(image_data[s, :, :], interval=ZScaleInterval())
 
         # Create axes with WCS projection
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection=wcs)
+        plt.imshow(image_data[s, :, :], origin='lower', cmap=plt.cm.gray, norm=norm)
+        ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
+        plt.show()
+
         fig, ax = plt.subplots(figsize=(10, 8),subplot_kw={'projection': wcs, 'slices': ('x', 'y')})
         img = ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm)
+
+        ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
         
         # Set axis labels
         ra = ax.coords[0]
@@ -48,7 +59,22 @@ def convertToPNG(theSlice, filepath):
         ra.set_axislabel('Right Ascension', fontsize=20)
         dec.set_axislabel('Declination', fontsize=20)
         # ==================================================
-        
+       # Add annotation near the origin to indicate direction
+        origin_x, origin_y = wcs.wcs_pix2world(0, 0, 0)  # Convert pixel (0, 0) to world coordinates
+
+        # Convert the coordinates to the desired string format
+        coord = SkyCoord(ra=origin_x * u.deg, dec=origin_y * u.deg, frame='icrs')
+        formatted_x = coord.ra.to_string(unit=u.hour, precision=2)  # Format RA
+        formatted_y = coord.dec.to_string(unit=u.deg, precision=2)   # Format Dec
+
+        ax.annotate(f'({formatted_x}, {formatted_y})',
+                    xy=(0, 0),
+                    xytext=(-70, -20),
+                    textcoords='offset points',
+                    color='black',
+                    fontsize=10,)
+
+
         # ==================================================
         # Add the title with the stretch name
         ax.set_title(f'{stretch_name}', fontsize=20)
