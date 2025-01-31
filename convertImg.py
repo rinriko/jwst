@@ -41,38 +41,44 @@ def convertToPNG(theSlice, filepath):
         else:
             norm = ImageNormalize(image_data[s, :, :], interval=ZScaleInterval())
 
-        # Create axes with WCS projection
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection=wcs)
-        plt.imshow(image_data[s, :, :], origin='lower', cmap=plt.cm.gray, norm=norm)
-        ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
-        plt.show()
+        # # Create axes with WCS projection
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection=wcs)
+        # plt.imshow(image_data[s, :, :], origin='lower', cmap=plt.cm.gray, norm=norm)
+        # ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
+        # plt.show()
 
         fig, ax = plt.subplots(figsize=(10, 8),subplot_kw={'projection': wcs, 'slices': ('x', 'y')})
+        # ax = plt.subplot(projection=wcs, label='overlays')
         img = ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm)
 
         ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
-        
+        # Enable tick labels along grid lines
         # Set axis labels
         ra = ax.coords[0]
         dec = ax.coords[1]
-        ra.set_axislabel('Right Ascension', fontsize=20)
-        dec.set_axislabel('Declination', fontsize=20)
+        ra.set_axislabel('Right Ascension', fontsize=20, minpad=0.8)
+        dec.set_axislabel('Declination', fontsize=20, minpad=-0.5)
+        ra.set_major_formatter('hh:mm:ss.s')
+        dec.set_major_formatter('dd:mm:ss.s')
+        ra.set_ticks(number=100)
+        dec.set_ticks(number=10)
+
         # ==================================================
-       # Add annotation near the origin to indicate direction
-        origin_x, origin_y = wcs.wcs_pix2world(0, 0, 0)  # Convert pixel (0, 0) to world coordinates
+    #    # Add annotation near the origin to indicate direction
+    #     origin_x, origin_y = wcs.wcs_pix2world(0, 0, 0)  # Convert pixel (0, 0) to world coordinates
 
-        # Convert the coordinates to the desired string format
-        coord = SkyCoord(ra=origin_x * u.deg, dec=origin_y * u.deg, frame='icrs')
-        formatted_x = coord.ra.to_string(unit=u.hour, precision=2)  # Format RA
-        formatted_y = coord.dec.to_string(unit=u.deg, precision=2)   # Format Dec
+    #     # Convert the coordinates to the desired string format
+    #     coord = SkyCoord(ra=origin_x * u.deg, dec=origin_y * u.deg, frame='icrs')
+    #     formatted_x = coord.ra.to_string(unit=u.hour, precision=2)  # Format RA
+    #     formatted_y = coord.dec.to_string(unit=u.deg, precision=2)   # Format Dec
 
-        ax.annotate(f'({formatted_x}, {formatted_y})',
-                    xy=(0, 0),
-                    xytext=(-70, -20),
-                    textcoords='offset points',
-                    color='black',
-                    fontsize=10,)
+    #     ax.annotate(f'({formatted_x}, {formatted_y})',
+    #                 xy=(0, 0),
+    #                 xytext=(-70, -20),
+    #                 textcoords='offset points',
+    #                 color='black',
+    #                 fontsize=10,)
 
 
         # ==================================================
