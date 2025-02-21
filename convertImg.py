@@ -18,6 +18,13 @@ def convertToPNG(theSlice, filepath):
     hdu = fits.open(filename)[1]  # Access the FITS data (typically second extension for image data)
 
     wcs = WCS(hdu.header, naxis=2)  # Create WCS object
+
+    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    #represents a 0-degree rotation
+    wcs.wcs.cd = [[1, 0],
+                    [0, 1]]
+    
+    print(wcs)
     image_data = hdu.data
     hdu.header  # Header with 3 axes
     # Print the header to see details
@@ -51,19 +58,60 @@ def convertToPNG(theSlice, filepath):
         fig, ax = plt.subplots(figsize=(10, 8),subplot_kw={'projection': wcs, 'slices': ('x', 'y')})
         # ax = plt.subplot(projection=wcs, label='overlays')
         img = ax.imshow(image_data[s, :, :], cmap='viridis', norm=norm)
-
-        ax.coords.grid(color='white', alpha=0.5, linestyle='solid')
+        ax.coords.grid(True)
+        # ax.coords.grid(color='white', alpha=1, linestyle='solid')
         # Enable tick labels along grid lines
         # Set axis labels
-        ra = ax.coords[0]
-        dec = ax.coords[1]
-        ra.set_axislabel('Right Ascension', fontsize=20, minpad=0.8)
-        dec.set_axislabel('Declination', fontsize=20, minpad=-0.5)
+
+        # In Galactic coordinates, so the coordinates are called glon and glat. 
+        # For an image in equatorial coordinates, you would use ra and dec. 
+        # The names are only available for specific celestial coordinate systems - for all other systems, 
+        # you should use the index of the coordinate (0 or 1).
+
+        ra = ax.coords['ra']
+        dec = ax.coords['dec']
+        # ra = ax.coords['ra']
+        ra.grid(color='lightgray', alpha=1, linestyle='solid')
+        dec.grid(color='black', alpha=1, linestyle='solid')
+        ra.set_ticklabel(color='dimgray', size=12)
+        dec.set_ticklabel(color='black', size=12)
+        # ra.grid(color='blue', alpha=1, linestyle='solid')
+        # dec.grid(color='darkred', alpha=1, linestyle='solid')
+        # ra.set_ticklabel(color='royalblue', size=12)
+        # dec.set_ticklabel(color='firebrick', size=12)
+
+        ra.set_axislabel('Right Ascension', color='dimgray', fontsize=20, minpad=0.8)
+        dec.set_axislabel('Declination', color='black', fontsize=20, minpad=-0.5)
+        # ra = ax.coords['ra']
         ra.set_major_formatter('hh:mm:ss.s')
         dec.set_major_formatter('dd:mm:ss.s')
-        ra.set_ticks(number=100)
+        ra.set_ticks(number=10)
         dec.set_ticks(number=10)
+        # ra.set_ticks([242.2, 242.3, 242.4] * u.degree)
 
+        # dec.set_ticks([242.2, 242.3, 242.4] * u.degree)
+        # ra.set_ticks(spacing=10 * u.arcmin, color='yellow')
+        # dec.set_ticks(spacing=10 * u.arcmin, color='orange')
+        ra.set_ticklabel(exclude_overlapping=True)
+        dec.set_ticklabel(exclude_overlapping=True)
+        ra.set_ticklabel(simplify=False)
+        dec.set_ticklabel(simplify=False)
+        # ra.display_minor_ticks(True)
+        # dec.display_minor_ticks(True)
+        # dec.set_minor_frequency(10)
+        # ra.set_ticklabel(simplify=False)
+        # dec.set_ticklabel(simplify=False)
+        # ra.set_ticks_position('#')
+        # ra.set_ticklabel_position('#')
+        # ra.set_axislabel_position('#')
+        # dec.set_ticks_position('#')
+        # dec.set_ticklabel_position('#')
+        # dec.set_axislabel_position('#')
+
+        # ra.add_tickable_gridline('i', -10*u.arcmin)
+
+        # dec.set_ticks_position('li')
+        # dec.set_ticklabel_position('li')
         # ==================================================
     #    # Add annotation near the origin to indicate direction
     #     origin_x, origin_y = wcs.wcs_pix2world(0, 0, 0)  # Convert pixel (0, 0) to world coordinates

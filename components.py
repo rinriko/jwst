@@ -334,17 +334,18 @@ content = html.Div(id="page-content", children=[
 ])
 
 color_list = [
-    "rgb(0, 0, 216)",       # #0000d8 (Bright Blue)
-    "rgb(92, 53, 248)",     # #5c35f8 (Vibrant Blue)
-    "rgb(153, 97, 255)",    # #9961ff (Lavender Purple)
-    "rgb(206, 139, 255)",   # #ce8bff (Light Purple)
-    "rgb(231, 191, 251)",   # #e7bffb (Pale Lilac)
-    "rgb(253, 192, 69)",    # #fdc045 (Bright Yellow-Orange)
-    "rgb(220, 145, 18)",    # #dc9112 (Golden Orange)
-    "rgb(178, 102, 1)",     # #b26601 (Dark Orange)
-    "rgb(134, 64, 0)",      # #864000 (Burnt Orange)
-    "rgb(92, 27, 0)"        # #5c1b00 (Deep Brown)
+    "rgb(0, 0, 216)",       # Bright Blue
+    "rgb(253, 192, 69)",    # Bright Yellow-Orange
+    "rgb(92, 53, 248)",     # Vibrant Blue
+    "rgb(220, 145, 18)",    # Golden Orange
+    "rgb(153, 97, 255)",    # Lavender Purple
+    "rgb(178, 102, 1)",     # Dark Orange
+    "rgb(206, 139, 255)",   # Light Purple
+    "rgb(134, 64, 0)",      # Burnt Orange
+    "rgb(231, 191, 251)",   # Pale Lilac
+    "rgb(92, 27, 0)"        # Deep Brown
 ]
+
 
 
 

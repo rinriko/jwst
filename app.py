@@ -55,33 +55,29 @@ def download_data(n_clicks, fig):
     import pandas as pd
     from io import StringIO
 
-    # Initialize a list to hold the data from all traces
-    all_data = []
+    # Initialize a dictionary to hold phase values and trace data
+    data_dict = {}
+    phase_values = None  # To store the common x values
 
     # Loop through each trace in the figure to extract data
     for trace in fig['data']:
         if 'x' in trace and 'y' in trace:
-            # Create a DataFrame for the trace
-            trace_data = pd.DataFrame({
-                'Phase': trace['x'],
-                'Average flux': trace['y'],
-                # Include any other relevant attributes
-            })
-            # Optionally, add a column to identify the trace
-            trace_data['trace_name'] = trace['name']
-            all_data.append(trace_data)
-
-    # Concatenate all DataFrames into a single DataFrame
-    if all_data:
-        combined_df = pd.concat(all_data, ignore_index=True)
-    else:
-        combined_df = pd.DataFrame()  # Empty DataFrame if no traces
-
+            if phase_values is None:
+                phase_values = trace['x']  # Set the common phase values
+                data_dict['Phase'] = phase_values  # Initialize Phase column
+            
+            # Store the trace values using trace name as column
+            data_dict[trace['name']] = trace['y']
+    
+    # Create DataFrame from the dictionary
+    combined_df = pd.DataFrame(data_dict)
+    
     # Convert DataFrame to CSV
     csv_string = combined_df.to_csv(index=False)
-
+    
     # Return the CSV as a downloadable response
     return dict(content=csv_string, filename="plot_data.csv")
+
 
 
 @dash_app.callback(
@@ -353,7 +349,8 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
                             'top': '5px',  # Adjust as needed
                             'left': '5px',  # Adjust as needed
                             # Semi-transparent background
-                            'background-color': 'rgba(0, 0, 0, 0.5)',
+                            'background-color': 'rgba(0, 0, 0, 1)',
+                            # 'background-color': 'rgba(0, 0, 0, 0.5)',
                             'color': 'white',
                             'padding': '2px 5px',
                             'border-radius': '3px',
@@ -547,8 +544,10 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 for a in annotations:
                     if a["text"] == annotation_mapping[eval(triggered_id)['index']]:
                         a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                        a["font"] = {"color": "black"}  # Change text color for visibility
                     else:
                         a["bgcolor"] = "black"
+                        a["font"] = {"color": "white"}  # Keep other annotations readable
                 fig['layout']['annotations'] = annotations
 
                 for c in children:
@@ -563,7 +562,8 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         if c.get('type') == 'Div' and c.get('props', {}).get('children'):
                             for child in c['props']['children']:
                                 if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    # child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
                                     child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
 
@@ -670,8 +670,10 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 for a in annotations:
                     if a["text"] == clickAnnotationData["annotation"]["text"]:
                         a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                        a["font"] = {"color": "black"}  # Change text color for visibility
                     else:
                         a["bgcolor"] = "black"
+                        a["font"] = {"color": "white"}  # Keep other annotations readable
 
                 for c in children:
                     if c.get('props', {}).get('id', {}).get('index') == anno_click:
@@ -685,7 +687,8 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         if c.get('type') == 'Div' and c.get('props', {}).get('children'):
                             for child in c['props']['children']:
                                 if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    # child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
                                     child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
                 is_anno_clicked = True
@@ -764,8 +767,10 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 for a in annotations:
                     if a["text"] == annotation_mapping[fig_anno_index]:
                         a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+                        a["font"] = {"color": "black"}  # Change text color for visibility
                     else:
                         a["bgcolor"] = "black"
+                        a["font"] = {"color": "white"}  # Keep other annotations readable
                 fig['layout']['annotations'] = annotations
 
                 for c in children:
@@ -780,7 +785,8 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                         if c.get('type') == 'Div' and c.get('props', {}).get('children'):
                             for child in c['props']['children']:
                                 if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    # child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+                                    child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
                                     child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
         elif not is_anno_clicked and triggered_id in ['legendFontSize', 'labelFontSize', 'pointSize', 'lineWidth']:
@@ -977,5 +983,6 @@ def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType,
 
 
 if __name__ == "__main__":
-    dash_app.run_server(debug=True)
-    # app.run_server(debug=True, port=8080, host='0.0.0.0') # Or replace with the actual IP address of the machine
+    # dash_app.run_server(debug=True)
+    dash_app.run_server(debug=True, port=8080, host='127.0.0.1') # Or replace with the actual IP address of the machine
+    # dash_app.run_server(debug=True, port=8080, host='0.0.0.0') # Or replace with the actual IP address of the machine
