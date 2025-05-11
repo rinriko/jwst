@@ -22,7 +22,7 @@ from components import data_type_options, get_epoch, xAxis_options, color_list, 
 
 dash_app = dash.Dash(__name__, external_stylesheets=[
                      dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
-app = dash_app.server
+server = dash_app.server
 
 dash_app.layout = dbc.Container(
     [
