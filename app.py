@@ -245,39 +245,6 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
             }
         else:
             img_src = None
-        # if Path(file_path).exists():
-        #     if filename not in imglist:
-        #         imglist.append(filename)
-        #         img_src = file_path
-        #         img_data[img_src] = {
-        #             'img_src': img_src,
-        #             'mjd_text': mjd_text,
-        #             'time_text': time_text,
-        #             'type':wavetype,
-        #             'phase_value': phase_value,
-        #             'phase_text': phase_text,
-        #             'point_index': point_index,
-        #             'customdata': customdata,
-        #             'filename': customdata.get('filename', 'N/A')
-        #         }
-        #     else:
-        #         img_src = None
-        # else:
-        #     if filename not in imglist:
-        #         imglist.append(filename)
-        #         img_data[img_src] = {
-        #             'img_src': img_src,
-        #             'mjd_text': mjd_text,
-        #             'time_text': time_text,
-        #             'type':wavetype,
-        #             'phase_value': phase_value,
-        #             'phase_text': phase_text,
-        #             'point_index': point_index,
-        #             'customdata': customdata,
-        #             'filename': customdata.get('filename', 'N/A')
-        #         }
-        #     else:
-        #         img_src = None
 
         if type == 'hover':
             fontSize = f'{tooltipFontSize}px'
