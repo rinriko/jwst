@@ -237,7 +237,7 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
             dataSelection)) % len(color_list)]
         # Combine the paths
         file_path = f"{config.IMG_URI}{filename}"
-        print(file_path)
+        # print(file_path)
         # Check if the file exists
         if filename not in imglist:
             imglist.append(filename)
@@ -903,7 +903,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
             if triggered_id in ['dataType', 'url']:
                 children = []
     # fig.update_layout(template="plotly_dark")
-    print("imgsrc", imgsrc)
+    # print("imgsrc", imgsrc)
     return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None
 
 
