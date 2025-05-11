@@ -955,4 +955,4 @@ def update_matrix(dataType, dataSelection, noOfBins, errorBars, xAxis, plotType,
 if __name__ == "__main__":
     # dash_app.run_server(debug=True)
     # dash_app.run_server(debug=True, port=8080, host='127.0.0.1') 
-    dash_app.run_server(debug=True, port=8080, host='0.0.0.0') 
+    dash_app.run_server(debug=True, port=8050, host='0.0.0.0') 
