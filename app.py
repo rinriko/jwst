@@ -17,7 +17,7 @@ from astropy import units as u, constants as c
 from collections import defaultdict
 import config
 from dash_iconify import DashIconify
-
+import requests
 from components import data_type_options, get_epoch, xAxis_options, color_list, sidebar, navbar, content, update_trace, update_df, modal
 
 dash_app = dash.Dash(__name__, external_stylesheets=[
@@ -44,7 +44,21 @@ dash_app.layout = dbc.Container(
 )
 
 # sidebar
-
+def url_exists(url: str, timeout: float = 5.0) -> bool:
+    """
+    Returns True if the URL returns a 200-level status code.
+    Uses HEAD first, falls back to GET if HEAD is not allowed.
+    """
+    try:
+        # Try a HEAD first (lighter than GET)
+        resp = requests.head(url, allow_redirects=True, timeout=timeout)
+        if resp.status_code == 405:
+            # Some servers disallow HEAD – fall back to GET without downloading the body
+            resp = requests.get(url, stream=True, timeout=timeout)
+        return 200 <= resp.status_code < 300
+    except requests.RequestException:
+        return False
+    
 @dash_app.callback(
     Output("download-data", "data"),
     Input("btn-download", "n_clicks"),
@@ -228,6 +242,8 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
         if filename not in imglist:
             imglist.append(filename)
             if Path(file_path).exists():
+                img_src = file_path
+            elif url_exists(file_path):
                 img_src = file_path
             else:
                 img_src = None
@@ -887,6 +903,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
             if triggered_id in ['dataType', 'url']:
                 children = []
     # fig.update_layout(template="plotly_dark")
+    print("imgsrc", imgsrc)
     return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None
 
 
