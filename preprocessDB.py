@@ -310,7 +310,50 @@ def write_to_json(rawdata, dataList, data_for_df, prefix=''):
     with open('data_for_df.json', 'w') as f:
         json.dump(data_for_df, f, indent=4)
 
+
+def write_to_json_by_folder(rawdata, dataList, data_for_df, prefix='output'):
+    base = Path(prefix)
+    base.mkdir(parents=True, exist_ok=True)
+
+    # 1) dataList
+    (base / 'dataList.json').write_text(
+        json.dumps(dataList, indent=2), encoding='utf-8'
+    )
+
+    # 2) rawdata split
+    for epoch, epoch_dict in rawdata.items():
+        for wave_type, type_dict in epoch_dict.items():
+            for r_in, rin_dict in type_dict.items():
+                for r_out, rout_data in rin_dict.items():
+                    # ensure rout_data is JSON serializable
+                    for k, v in rout_data.items():
+                        if isinstance(v, np.ndarray):
+                            rout_data[k] = v.tolist()
+                    dest = base / 'rawdata' / str(epoch) / wave_type / str(r_in)
+                    dest.mkdir(parents=True, exist_ok=True)
+                    with (dest / f"{r_out}.json").open('w', encoding='utf-8') as f:
+                        json.dump(rout_data, f, indent=2)
+
+    # 3) df split (very similar)
+    for epoch, epoch_dict in data_for_df.items():
+        for wave_type, type_dict in epoch_dict.items():
+            for r_in, rin_dict in type_dict.items():
+                for r_out, rout_data in rin_dict.items():
+                    # convert numpy arrays if any
+                    for k, v in rout_data.items():
+                        if isinstance(v, np.ndarray):
+                            rout_data[k] = v.tolist()
+                    dest = base / 'df' / str(epoch) / wave_type / str(r_in)
+                    dest.mkdir(parents=True, exist_ok=True)
+                    with (dest / f"{r_out}.json").open('w', encoding='utf-8') as f:
+                        json.dump(rout_data, f, indent=2)
+
+    print(f"✓ All done!  Files under “{prefix}/”")
+
+
+
 rawdata, dataList, data_for_df = process_data('ZTF_J1539')
 
-write_to_db(rawdata, dataList, data_for_df, 'ZTF_J1539')
-# write_to_json(rawdata, dataList, data_for_df, 'ZTF_J1539')
+# write_to_db(rawdata, dataList, data_for_df, 'ZTF_J1539')
+write_to_json(rawdata, dataList, data_for_df, 'ZTF_J1539')
+write_to_json_by_folder(rawdata, dataList, data_for_df, 'ZTF_J1539')

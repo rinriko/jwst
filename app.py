@@ -64,6 +64,8 @@ def download_data(n_clicks, fig):
         if 'x' in trace and 'y' in trace:
             if phase_values is None:
                 phase_values = trace['x']  # Set the common phase values
+                # Format phase values to 2 decimal places
+                phase_values = [round(phase, 2) for phase in phase_values]
                 data_dict['Phase'] = phase_values  # Initialize Phase column
             
             # Store the trace values using trace name as column
@@ -221,6 +223,7 @@ def process_points(pt, type, tooltipFontSize, thumnailsSize, dataSelection, anno
             dataSelection)) % len(color_list)]
         # Combine the paths
         file_path = f"{config.IMG_URI}{filename}"
+        print(file_path)
         # Check if the file exists
         if filename not in imglist:
             imglist.append(filename)

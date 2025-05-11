@@ -17,8 +17,8 @@ from astropy.time import Time
 from astropy import units as u, constants as c
 import pandas as pd
 
-# isDB = False
-isDB = True
+isDB = False
+# isDB = True
 rawdata, dataList, data_for_df = fetching_data('ZTF_J1539', isDB)
 data_type_options = [
     {'label': 'Average Data', 'value': 'average'},
