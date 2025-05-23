@@ -25,6 +25,9 @@ full_size_dir.mkdir(parents=True, exist_ok=True)
 thumbnail_dir = Path(r"T:/jwst/static/img/thumbnails")
 thumbnail_dir.mkdir(parents=True, exist_ok=True)
 
+OnlyImg_dir = Path(r"T:/jwst/static/img/OnlyImg")
+OnlyImg_dir.mkdir(parents=True, exist_ok=True)
+
 def old_convertToPNG(theSlice, filepath, output_dir):
     
     s = theSlice
@@ -147,6 +150,35 @@ def convertToPNG(theSlice, filepath, output_dir):
     plt.close()  # Close the figure to release memory
     return output_path
 
+def convertToPNG_forGroupImg(theSlice, filepath, output_dir):
+    s = theSlice
+    # Load the FITS data
+    with fits.open(filepath) as hdul:
+        data = hdul[1].data          # assumes your image lives in extension 1
+
+    # Extract the requested slice
+    img_slice = data[s, :, :]
+
+    # Auto-scale with zscale
+    norm = ImageNormalize(img_slice, interval=ZScaleInterval())
+
+    # Plot only the image, no axes
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.imshow(img_slice, cmap='viridis', norm=norm)
+    ax.axis('off')   # <-- turns off x/y ticks and labels
+
+    # Save
+    # =====================================================================
+    # plt.savefig('zsqrt_slice%s_seg001_nrcb1.png' % s)
+    # Save the plot as PNG
+    output_filename = Path(filename).stem + f'_slice{int(s)+1}.png'
+    output_path = output_dir / output_filename
+    fig.tight_layout(pad=0)
+    fig.savefig(output_path, dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+    # =====================================================================
+    return output_path
+
 # Function to create a thumbnail from a PNG image
 def create_thumbnail(image_path, thumbnail_dir, size=(128, 128)):
     img = Image.open(image_path)
@@ -177,16 +209,20 @@ for epoch in ["epoch1","epoch2"]:
             # for i in range(0,1):
             for i in range(istart, iend+1):
                 print("File: ",filename ," Frame: ", i+1)
-                full_size_output_dir = full_size_dir/ epoch/ wave_type
-                full_size_output_dir.mkdir(parents=True, exist_ok=True)
-                thumbnail_output_dir = thumbnail_dir/ epoch/ wave_type
-                thumbnail_output_dir.mkdir(parents=True, exist_ok=True)
+                OnlyImg_output_dir = OnlyImg_dir/ epoch/ wave_type
+                OnlyImg_output_dir.mkdir(parents=True, exist_ok=True)
+                # full_size_output_dir = full_size_dir/ epoch/ wave_type
+                # full_size_output_dir.mkdir(parents=True, exist_ok=True)
+                # thumbnail_output_dir = thumbnail_dir/ epoch/ wave_type
+                # thumbnail_output_dir.mkdir(parents=True, exist_ok=True)
                 try:
-                    output_path = convertToPNG(i, filename, full_size_output_dir)
-                    # Create a thumbnail of the saved PNG
-                    create_thumbnail(output_path, thumbnail_output_dir)
+                    output_path = convertToPNG_forGroupImg(i, filename, OnlyImg_output_dir)
+                    # output_path = convertToPNG(i, filename, full_size_output_dir)
+                    # # Create a thumbnail of the saved PNG
+                    # create_thumbnail(output_path, thumbnail_output_dir)
                 except Exception as e:
                     print("Error: ", filename)
+                    print("iend: ", iend)
                     print(e)
                     print("----------------------------------------------------------------------------------------------------------------------")
             

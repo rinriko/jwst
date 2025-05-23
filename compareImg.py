@@ -218,7 +218,7 @@ def run_multiple_rounds(
         )
         with (out_path / fname).open("w", encoding="utf-8") as f:
             f.write(f"Round {rnd}: {len(clusters)} clusters, {len(reps)} reps\n\n")
-            for i, (cluster, rep) in enumerate(reps, start=1):
+            for i, (cluster, rep) in enumerate(zip(clusters, reps), start=1):
                 f.write(f"Group {i:02d} ({len(cluster):2d} images): {rep}\n")
 
     # 5) compare all rounds
@@ -241,7 +241,7 @@ def run_multiple_rounds(
     #             f"threshold={threshold} → rounds differ in: {diffs}\n"
     #         )
 
-    # print(f"Done: results in `{output_dir}`")
+    print(f"Done: results in `{output_dir}`")
     return all_reps
 
 
