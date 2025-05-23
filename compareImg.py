@@ -180,7 +180,7 @@ def run_multiple_rounds(
     hash_size: int,
     highfreq_factor: int,
     threshold: int,
-    num_rounds: int = 3,
+    num_rounds: int = 1,
     output_dir: str = "output/comparewithphash"
 ):
     """
@@ -213,34 +213,35 @@ def run_multiple_rounds(
         # 4) write round file
         fname = (
             f"hs{hash_size}_hf{highfreq_factor}_thr{threshold}"
-            f"_round{rnd}.txt"
+            # f"_round{rnd}.txt"
+            f".txt"
         )
         with (out_path / fname).open("w", encoding="utf-8") as f:
             f.write(f"Round {rnd}: {len(clusters)} clusters, {len(reps)} reps\n\n")
-            for i, rep in enumerate(reps, start=1):
-                f.write(f"{i:02d}: {rep}\n")
+            for i, (cluster, rep) in enumerate(reps, start=1):
+                f.write(f"Group {i:02d} ({len(cluster):2d} images): {rep}\n")
 
     # 5) compare all rounds
-    baseline = all_reps[0]
-    diffs = [i+1 for i, reps in enumerate(all_reps) if reps != baseline]
+    # baseline = all_reps[0]
+    # diffs = [i+1 for i, reps in enumerate(all_reps) if reps != baseline]
 
-    # 6) write summary
-    summary_name = (
-        f"hs{hash_size}_hf{highfreq_factor}_thr{threshold}_summary.txt"
-    )
-    with (out_path / summary_name).open("w", encoding="utf-8") as f:
-        if len(diffs) == 0:
-            f.write(
-                f"hash_size={hash_size}, highfreq_factor={highfreq_factor}, "
-                f"threshold={threshold} → all {num_rounds} rounds produce identical reps.\n"
-            )
-        else:
-            f.write(
-                f"hash_size={hash_size}, highfreq_factor={highfreq_factor}, "
-                f"threshold={threshold} → rounds differ in: {diffs}\n"
-            )
+    # # 6) write summary
+    # summary_name = (
+    #     f"hs{hash_size}_hf{highfreq_factor}_thr{threshold}_summary.txt"
+    # )
+    # with (out_path / summary_name).open("w", encoding="utf-8") as f:
+    #     if len(diffs) == 0:
+    #         f.write(
+    #             f"hash_size={hash_size}, highfreq_factor={highfreq_factor}, "
+    #             f"threshold={threshold} → all {num_rounds} rounds produce identical reps.\n"
+    #         )
+    #     else:
+    #         f.write(
+    #             f"hash_size={hash_size}, highfreq_factor={highfreq_factor}, "
+    #             f"threshold={threshold} → rounds differ in: {diffs}\n"
+    #         )
 
-    print(f"Done: results in `{output_dir}`")
+    # print(f"Done: results in `{output_dir}`")
     return all_reps
 
 

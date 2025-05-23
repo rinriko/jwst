@@ -11,6 +11,9 @@ env/
 #img
 img/
 
+# Data files
+output/
+
 # library directory 
 lib/
 
