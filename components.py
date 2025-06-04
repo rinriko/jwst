@@ -253,7 +253,8 @@ sidebar = html.Div(
                             ])
                         ])]),
                     html.Hr(),
-                    dbc.Button("Download Data", id="btn-download", className="ml-auto", n_clicks=0),
+                    dbc.Button("Download Data", id="btn-download",
+                               className="ml-auto", n_clicks=0),
                     dcc.Download(id="download-data")
                 ]
                 )
@@ -277,6 +278,22 @@ content = html.Div(id="page-content", children=[
                             dcc.Graph(id='plot-chart',
                                       className='bg-light', clear_on_unhover=True)]),
                             dcc.Tooltip(id="graph-tooltip"),
+                    ]),
+                dbc.Col(
+                    id="image-plot",
+                    children=[
+                        html.Div([
+                            # html.P(id='plot-title',
+                            #        className='font-weight-bold'),
+                            dcc.Store(
+                                id='image-plot-annotations-store', data=[]),
+                            dcc.Store(
+                                id='image-plot-annotations-mapping', data={}),
+                            dcc.Store(
+                                id='image-plot-annotations-clicked', data=""),
+                            dcc.Graph(id='image-plot-chart',
+                                      className='bg-light', clear_on_unhover=True)]),
+                            dcc.Tooltip(id="image-plot-graph-tooltip"),
                     ])
             ],
             style={'margin': '8px', 'display': 'none'}),
@@ -347,8 +364,6 @@ color_list = [
 ]
 
 
-
-
 def weightedAvg(element, error):
     # Convert to NumPy array with float dtype
     elements = np.array(element, dtype=float)
@@ -396,7 +411,7 @@ def normalAvg(element, error):
 def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate, plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth):
     traces = []
     color = color_list[color_index % len(color_list)]
-    print(customdata)
+    # print(customdata)
     common_props = {
         'x': x_value,
         'y': y_value,
@@ -405,8 +420,8 @@ def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate
         'name': f"{name} ({len(y_value)})",
         'legendgroup': wave_type.lower(),
         'legendgrouptitle_text': f"{wave_type} Group",
-        'marker': {'color': color, 'size': pointSize}, 
-        'line': {'color': color, 'width': lineWidth},  
+        'marker': {'color': color, 'size': pointSize},
+        'line': {'color': color, 'width': lineWidth},
         'customdata': customdata,
         'hoverinfo': hoverinfo,
         'hovertemplate': hovertemplate
@@ -477,6 +492,7 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
         psf_flux_unc_time = np.array(d['psf_flux_unc_time'])
         frame = np.array(d['frame']).astype(int)
         customdata_time = np.array(d['customdata_time'])
+        filename_arr_time = np.array([d["filename"] for d in customdata_time])
 
         phase_values_phase = np.array(d['phase_values_phase'])
         time_mjd_phase = np.array(d['time_mjd_phase'])
@@ -484,6 +500,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
         psf_flux_unc_phase = np.array(d['psf_flux_unc_phase'])
         frame_phase = np.array(d['frame_phase']).astype(int)
         customdata_phase = np.array(d['customdata_phase'])
+        filename_arr_phase = np.array(
+            [d["filename"] for d in customdata_phase])
         # print(customdata_phase)
         time_arrays = {
             'mjd': time_mjd,
@@ -499,6 +517,7 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
 
         if dataType == 'average':
             hovertemplate = ('Y-Axis: %{y}<br>'
+                             #  'filename_list: %{customdata.filename_list}<br>'
                              'Phase: %{customdata.phase:.3f}<extra></extra>'
                              )
             hoverinfo = "all"
@@ -526,7 +545,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                             'time': Time(time_mjd_phase[bin_mask].mean(), format="mjd", scale="tdb").datetime,
                             'phase': (bin_edges[i] + bin_edges[i+1]) / 2,
                             'datatype': "average",
-                            'phase_list': np.array(phase_values_phase)[bin_mask]
+                            'y_list': np.array(psf_flux_phase)[bin_mask],
+                            'y_err_list': np.array(psf_flux_unc_phase)[bin_mask],
+                            'phase_list': np.array(phase_values_phase)[bin_mask],
+                            'filename_list': np.array(filename_arr_phase)[bin_mask]
                         })
                         # # ===================== For checking
                         # x_value2.append((bin_edges[i] + bin_edges[i+1]) / 2)
@@ -553,7 +575,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'time': Time(time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(), format="mjd", scale="tdb").datetime,
                         'phase': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
                         'datatype': "average",
-                        'phase_list': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint]
+                        'y_list': chunk_flux_time,
+                        'y_err_list': chunk_flux_unc_time,
+                        'phase_list': customdata_time[i * noOfDataPoint: (i + 1) * noOfDataPoint],
+                        'filename_list': filename_arr_time[i * noOfDataPoint: (i + 1) * noOfDataPoint]
                     })
 
                     # # ===================== For checking
@@ -581,7 +606,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'time': Time(time_mjd[remaining_start_idx:].mean(), format="mjd", scale="tdb").datetime,
                         'phase': phase_values[remaining_start_idx:].mean(),
                         'datatype': "average",
-                        'phase_list': phase_values[remaining_start_idx:]
+                        'y_list': remaining_time,
+                        'y_err_list': remaining_flux_uncs,
+                        'phase_list': customdata_time[remaining_start_idx:],
+                        'filename_list': filename_arr_time[remaining_start_idx:]
                     })
                     # # ===================== For checking
                     # avg, avgErr = normalAvg(remaining_fluxes, remaining_flux_uncs)

@@ -398,15 +398,20 @@ def display_hover(hoverData, tooltipFontSize, thumnailsSize, current_fig, dataSe
     Output('2d_plot', 'style'),
     Output('imageContent', 'style'),
     Output('matrix_plot', 'style'),
-    Input("url", "pathname")
+    Output('image-plot', 'style'),
+    Input("url", "pathname"),
+    Input('dataType', 'value'),
 )
-def render_page_content(pathname):
+def render_page_content(pathname, dataType):
     if pathname == "/":
-        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
+        if dataType == 'average':
+            return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'block'},
+        else:
+            return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}
     elif pathname == "/noise":
-        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}
+        return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}
     elif pathname == "/matrix":
-        return {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'flex'}
+        return {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'flex'}, {'margin': '8px', 'display': 'none'}
     elif pathname == "/test":
         return html.P("Oh cool, this is test page!")
     # If the user tries to reach a different page, return a 404 message
@@ -418,6 +423,7 @@ def render_page_content(pathname):
         ],
         className="p-3 bg-light rounded-3",
     )
+
 
 
 @dash_app.callback(
