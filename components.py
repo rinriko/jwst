@@ -18,10 +18,11 @@ from astropy import units as u, constants as c
 import pandas as pd
 
 isDB = False
-# isDB = True
+isDB = True
 rawdata, dataList, data_for_df = fetching_data('ZTF_J1539', isDB)
 data_type_options = [
     {'label': 'Average Data', 'value': 'average'},
+    {'label': 'Average Data (Image)', 'value': 'average-img'},
     {'label': 'Raw Data', 'value': 'raw'},
 ]
 xAxis_options = [
@@ -545,10 +546,125 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                             'time': Time(time_mjd_phase[bin_mask].mean(), format="mjd", scale="tdb").datetime,
                             'phase': (bin_edges[i] + bin_edges[i+1]) / 2,
                             'datatype': "average",
+                        })
+                        # # ===================== For checking
+                        # x_value2.append((bin_edges[i] + bin_edges[i+1]) / 2)
+                        # avg, avgErr = normalAvg(np.array(psf_flux_phase)[bin_mask], np.array(psf_flux_unc_phase)[bin_mask])
+                        # y_value2.append(avg)
+                        # e_value2.append(avgErr)
+                        # # ==================================
+
+            else:
+                avg_time, remaining_time = [], []
+                # avg_time, remaining_time, y_value, e_value = [], [], [], []
+                # customdata = []
+                for i in range(noOfChunks):
+                    chunk_flux_time = psf_flux_time[i *
+                                                    noOfDataPoint: (i + 1) * noOfDataPoint]
+                    chunk_flux_unc_time = psf_flux_unc_time[i *
+                                                            noOfDataPoint: (i + 1) * noOfDataPoint]
+                    avg, avgErr = weightedAvg(
+                        chunk_flux_time, chunk_flux_unc_time)
+                    y_value.append(avg)
+                    e_value.append(avgErr)
+                    customdata.append({
+                        'mjd': time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
+                        'time': Time(time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(), format="mjd", scale="tdb").datetime,
+                        'phase': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
+                        'datatype': "average",
+                    })
+
+                    # # ===================== For checking
+                    # avg, avgErr = normalAvg(chunk_flux_time, chunk_flux_unc_time)
+                    # y_value2.append(avg)
+                    # e_value2.append(avgErr)
+                    # # ==================================
+                remaining_start_idx = noOfChunks * noOfDataPoint
+                remaining_fluxes = psf_flux_time[remaining_start_idx:]
+                remaining_flux_uncs = psf_flux_unc_time[remaining_start_idx:]
+                if xAxis in time_arrays:
+                    avg_time = [np.mean(
+                        time_arrays[xAxis][i * noOfDataPoint: (i + 1) * noOfDataPoint]) for i in range(noOfChunks)]
+                    remaining_time = time_arrays[xAxis][remaining_start_idx:]
+                else:
+                    raise ValueError(f"Unknown xAxis value: {xAxis}")
+                if len(remaining_time) > 0:
+                    avg_time.append(np.mean(remaining_time))
+                    avg, avgErr = weightedAvg(
+                        remaining_fluxes, remaining_flux_uncs)
+                    y_value.append(avg)
+                    e_value.append(avgErr)
+                    customdata.append({
+                        'mjd': time_mjd[remaining_start_idx:].mean(),
+                        'time': Time(time_mjd[remaining_start_idx:].mean(), format="mjd", scale="tdb").datetime,
+                        'phase': phase_values[remaining_start_idx:].mean(),
+                        'datatype': "average",
+                    })
+                    # # ===================== For checking
+                    # avg, avgErr = normalAvg(remaining_fluxes, remaining_flux_uncs)
+                    # y_value2.append(avg)
+                    # e_value2.append(avgErr)
+                    # # ==================================
+                if xAxis == 'time':
+                    x_value = Time(avg_time, format="mjd",
+                                   scale="tdb").datetime
+                else:
+                    x_value = avg_time
+                # # ===================== For checking
+                # x_value2 = x_value
+                # # ==================================
+            if pathname == "/noise":
+                y_temp = [y/e for y, e in zip(y_value, e_value)]
+                y_value = y_temp
+                # # ===================== For checking
+                # y_temp2 = [y/e for y, e in zip(y_value2, e_value2)]
+                # y_value2 = y_temp2
+                # # ==================================
+            traces.extend(create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate,
+                          plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth))
+            # # ===================== For checking
+            # traces.extend(create_trace(x_value2, y_value2, e_value2, customdata, hovertemplate,
+            #               plotType, errorBars, name+" normal avg ", wave_type, color_index+1, pointSize, lineWidth))
+            # # ===================================
+        elif dataType == 'average-img':
+            hovertemplate = ('Y-Axis: %{y}<br>'
+                             #  'filename_list: %{customdata.filename_list}<br>'
+                             'Phase: %{customdata.phase:.3f}<extra></extra>'
+                             )
+            hoverinfo = "all"
+            x_value = []
+            y_value = []
+            e_value = []
+            # # ===================== For checking
+            # x_value2 = []
+            # y_value2 = []
+            # e_value2 = []
+            # # ==================================
+            customdata = []
+            if xAxis == 'phase':
+                print(phase_values_phase)
+                bin_indices = np.digitize(phase_values_phase, bin_edges) - 1
+                print(bin_indices)
+                for i in range(noOfBins):
+                    bin_mask = (bin_indices == i)
+                    if np.any(bin_mask):
+                        x_value.append((bin_edges[i] + bin_edges[i+1]) / 2)
+                        avg, avgErr = weightedAvg(np.array(psf_flux_phase)[
+                                                  bin_mask], np.array(psf_flux_unc_phase)[bin_mask])
+                        y_value.append(avg)
+                        e_value.append(avgErr)
+                        customdata.append({
+                            'mjd': time_mjd_phase[bin_mask].mean(),
+                            'time': Time(time_mjd_phase[bin_mask].mean(), format="mjd", scale="tdb").datetime,
+                            'phase': (bin_edges[i] + bin_edges[i+1]) / 2,
+                            'datatype': "average",
                             'y_list': np.array(psf_flux_phase)[bin_mask],
                             'y_err_list': np.array(psf_flux_unc_phase)[bin_mask],
                             'phase_list': np.array(phase_values_phase)[bin_mask],
-                            'filename_list': np.array(filename_arr_phase)[bin_mask]
+                            'filename_list': np.array(filename_arr_phase)[bin_mask],
+                            'type': wave_type,
+                            'r_in': r_in,
+                            'r_out': r_out,
                         })
                         # # ===================== For checking
                         # x_value2.append((bin_edges[i] + bin_edges[i+1]) / 2)
@@ -578,7 +694,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'y_list': chunk_flux_time,
                         'y_err_list': chunk_flux_unc_time,
                         'phase_list': customdata_time[i * noOfDataPoint: (i + 1) * noOfDataPoint],
-                        'filename_list': filename_arr_time[i * noOfDataPoint: (i + 1) * noOfDataPoint]
+                        'filename_list': filename_arr_time[i * noOfDataPoint: (i + 1) * noOfDataPoint],
+                        'type': wave_type,
+                        'r_in': r_in,
+                        'r_out': r_out,
                     })
 
                     # # ===================== For checking
@@ -609,7 +728,10 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                         'y_list': remaining_time,
                         'y_err_list': remaining_flux_uncs,
                         'phase_list': customdata_time[remaining_start_idx:],
-                        'filename_list': filename_arr_time[remaining_start_idx:]
+                        'filename_list': filename_arr_time[remaining_start_idx:],
+                        'type': wave_type,
+                        'r_in': r_in,
+                        'r_out': r_out,
                     })
                     # # ===================== For checking
                     # avg, avgErr = normalAvg(remaining_fluxes, remaining_flux_uncs)

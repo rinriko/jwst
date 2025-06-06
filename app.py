@@ -18,7 +18,15 @@ from collections import defaultdict
 import config
 from dash_iconify import DashIconify
 import requests
-from components import data_type_options, get_epoch, xAxis_options, color_list, sidebar, navbar, content, update_trace, update_df, modal
+from components import data_type_options, get_epoch, xAxis_options, color_list, sidebar, navbar, content, update_trace, update_df, modal, create_trace
+
+# from callbacks.download_callbacks import register_download_callbacks
+# from callbacks.sync_callbacks import register_sync_callbacks
+# from callbacks.toggle_callbacks import register_toggle_callbacks
+# from callbacks.graph_callbacks import register_graph_callbacks
+# from callbacks.matrix_callbacks import register_matrix_callbacks
+
+
 
 dash_app = dash.Dash(__name__, external_stylesheets=[
                      dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
@@ -42,6 +50,11 @@ dash_app.layout = dbc.Container(
     ],
     fluid=True,
 )
+# register_download_callbacks(dash_app)
+# register_sync_callbacks(dash_app)
+# register_toggle_callbacks(dash_app)
+# register_graph_callbacks(dash_app)
+# register_matrix_callbacks(dash_app)
 
 # sidebar
 def url_exists(url: str, timeout: float = 5.0) -> bool:
@@ -95,7 +108,6 @@ def download_data(n_clicks, fig):
     return dict(content=csv_string, filename="plot_data.csv")
 
 
-
 @dash_app.callback(
     Output('noOfBins', 'value'),
     Output('noOfBinsValue', 'value'),
@@ -130,11 +142,23 @@ def sync_input_slider(noOfBins, noOfBinsValue, noOfDataPoint, noOfDataPointValue
     Input('xAxis', 'value'),
 )
 def toggle_avg_sections(data_type, xAxis):
-    avg_group_style = {'display': 'none'} if data_type != 'average' else {}
-    avg_group1_style = {
-        'display': 'none'} if data_type != 'average' or xAxis != 'phase' else {}
-    avg_group2_style = {
-        'display': 'none'} if data_type != 'average' or xAxis == 'phase' else {}
+    if (data_type == 'average-img' or data_type == 'average') and xAxis == 'phase':
+        avg_group_style = {}
+        avg_group1_style = {'display': 'none'}
+        avg_group2_style = {}
+    elif (data_type == 'average-img' or data_type == 'average') and xAxis != 'phase':
+        avg_group_style = {}
+        avg_group1_style = {}
+        avg_group2_style = {'display': 'none'}
+    else:
+        avg_group_style = {'display': 'none'}
+        avg_group1_style = {'display': 'none'}
+        avg_group2_style = {'display': 'none'}
+    # avg_group_style = {'display': 'none'} if data_type != 'average' else {}
+    # avg_group1_style = {
+    #     'display': 'none'} if data_type != 'average' or xAxis != 'phase' else {}
+    # avg_group2_style = {
+    #     'display': 'none'} if data_type != 'average' or xAxis == 'phase' else {}
     return avg_group_style, avg_group1_style, avg_group2_style
 
 
@@ -152,7 +176,7 @@ def adjust_sidebar_content(pathname):
         'display': 'none'} if pathname == "/matrix" else {}
     return errorControl_style, xAxisControl_style, plotTypeControl_style
 
-# navbar
+navbar
 
 
 @dash_app.callback(
@@ -404,7 +428,7 @@ def display_hover(hoverData, tooltipFontSize, thumnailsSize, current_fig, dataSe
 )
 def render_page_content(pathname, dataType):
     if pathname == "/":
-        if dataType == 'average':
+        if dataType == 'average-img':
             return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'block'},
         else:
             return {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'block'}, {'margin': '8px', 'display': 'none'}, {'margin': '8px', 'display': 'none'}
@@ -472,6 +496,7 @@ def update_plot_title(dataType, pathname):
     Output('annotations-mapping', 'data'),
     Output('plot-chart', 'clickData'),
     Output('plot-chart', 'clickAnnotationData'),
+    Output('image-plot-chart', 'figure'),
     Input({'type': 'dynamic-img', 'index': dash.dependencies.ALL,
           'src': dash.dependencies.ALL}, 'n_clicks'),
     Input('close-modal', 'n_clicks'),
@@ -502,18 +527,22 @@ def update_plot_title(dataType, pathname):
     State('annotations-store', 'data'),
     State('annotations-mapping', 'data'),
     State('annotations-clicked', 'data'),
+    State('image-plot-chart', 'figure'),
 )
 def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, dataSelectionInput, noOfBins, xAxis, errorBars, plotType,
                       noOfDataPoint, legendFontSize, labelFontSize, pathname, clickData, clickAnnotationData, pointSize, lineWidth,
                       data, children, is_open, timestamps, current_fig, dataSelectionState, tooltipFontSize, thumnailsSize,
-                      annotations, annotation_mapping, anno_clicked):
+                      annotations, annotation_mapping, anno_clicked,current_image_fig):
     ctx = dash.callback_context
     if not ctx.triggered:
-        return is_open, None, None, data, go.Figure(), children, annotations
+        return is_open, None, None, data, go.Figure(), children, annotations, anno_clicked, annotation_mapping, None, None, go.Figure()
     anno_click = anno_clicked
     is_anno_clicked = False
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     fig = go.Figure() if not current_fig else current_fig
+    fig_img = go.Figure() if not current_image_fig else current_image_fig
+    
+    
     if children is None:
         children = []
     if annotation_mapping is None:
@@ -781,6 +810,125 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                                     child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
                                     child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
+        elif not is_anno_clicked and triggered_id == 'plot-chart' and dataType == 'average-img' and clickData:
+            print("2")
+            pt = clickData['points'][0]
+            curveNumber = pt.get("curveNumber")
+            x, y, customdata = pt.get("x"), pt.get(
+                "y"), pt.get("customdata", {})
+            # print(customdata)
+            y_list = customdata.get("y_list", [])
+            y_err_list = customdata.get("y_err_list", [])
+            phase_list = customdata.get("phase_list", [])
+            filename_list = customdata.get("filename_list", [])
+
+            img_trace = go.Scattergl(
+                x=phase_list,
+                y=np.array(y_list),
+                mode=plotType,
+                opacity=0.8,
+                marker={'color': "rgba(0, 0, 0, 0.5)", 'size': pointSize},
+                line={'color': "rgba(0, 0, 0, 0.5)", 'width': lineWidth},
+            ) 
+            fig_img = make_subplots(rows=1, cols=1, shared_xaxes=True, vertical_spacing=0.02,
+                                # x_title=next(
+                                #     option['label'] for option in xAxis_options if option['value'] == xAxis),
+                                # y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
+                                )
+            fig_img.add_trace(img_trace, row=1, col=1)
+            phase, wavetype, r_in, r_out = customdata.get("phase"), customdata.get(
+                "type"), customdata.get("r_in"), customdata.get("r_out")
+            xref, yref = ("x", "y") if curveNumber < len(dataSelectionInput) else ("x2", "y2")
+            fig_anno_index = f"{wavetype}_{phase}"
+            # fig_anno_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
+            clicked_phase = phase
+            # if annotations:
+            #     try:
+            #         last_annotation = annotations[-1]
+            #         last_number = int(last_annotation['text'].split()[-1])
+            #         next_number = last_number + 1
+            #     except (ValueError, IndexError):
+            #         next_number = 1
+            # else:
+            #     next_number = 1
+            #     if 'layout' not in current_fig['layout']:
+            #         current_fig['layout']['annotations'] = []
+            #     annotations = current_fig['layout']['annotations']
+            # existing_ids = [key for key in annotation_mapping if 'No.' not in key]
+
+            # if fig_anno_index not in existing_ids:
+            annotations = []
+            existing_ids = []
+            for trace in current_fig['data']:
+                customdata_values = trace.get("customdata", [])
+                # Iterate over customdata to check for matching phase values
+                for i, customdata_point in enumerate(customdata_values):
+                    if customdata_point.get("type") != wavetype:
+                        break
+                    if customdata_point.get("phase") == clicked_phase:
+                        print(customdata_point)
+                        print(trace["x"][i], trace["y"][i])
+                        # Create an annotation at the top for the matched phase
+                        new_annotation = dict(
+                            x=trace["x"][i],
+                            y=trace["y"][i],  # Offset above max y for visibility
+                            xref=xref,
+                            yref=yref,
+                            text=f"Focus on phase {clicked_phase}",
+                            showarrow=True,
+                            arrowhead=7,
+                            xanchor="center",
+                            yanchor="bottom",
+                            ax=0,
+                            ay=-40,
+                            font=dict(color='white', size=14),
+                            bgcolor='black',
+                            bordercolor='black',
+                            borderwidth=2,
+                            borderpad=4,
+                            arrowcolor='black',
+                            # id=fig_anno_index,
+                            captureevents=True
+                        )
+                        annotation_mapping[fig_anno_index] = f"Focus on phase {clicked_phase}"
+                        annotation_mapping[f"Focus on phase {clicked_phase}"] = fig_anno_index
+                        # Add the annotation
+                        annotations.append(new_annotation)
+            #     next_number += 1
+            #     # annotations.append(new_annotation)
+                fig['layout']['annotations'] = annotations
+
+            #     cond, bbox, new_children = process_points(
+            #         pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, new_annotation)
+            #     if cond:
+            #         children += new_children
+            # else:
+            #     # print(fig_anno_index)
+            #     for a in annotations:
+            #         if a["text"] == annotation_mapping[fig_anno_index]:
+            #             a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
+            #             a["font"] = {"color": "black"}  # Change text color for visibility
+            #         else:
+            #             a["bgcolor"] = "black"
+            #             a["font"] = {"color": "white"}  # Keep other annotations readable
+            #     fig['layout']['annotations'] = annotations
+
+            #     for c in children:
+            #         if c.get('props', {}).get('id', {}).get('index') == fig_anno_index:
+            #             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+            #                 for child in c['props']['children']:
+            #                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+            #                         child['props']['style']['background-color'] = 'rgba(0, 240, 255, 0.7)'
+            #                         child['props']['style']['color'] = 'rgba(0, 0, 0, 1)'
+            #                         break
+            #         else:
+            #             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
+            #                 for child in c['props']['children']:
+            #                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
+            #                         # child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
+            #                         child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
+            #                         child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
+            #                         break
         elif not is_anno_clicked and triggered_id in ['legendFontSize', 'labelFontSize', 'pointSize', 'lineWidth']:
             for trace in fig["data"]:
                 trace["marker"]['size'] = pointSize
@@ -825,6 +973,13 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 shapes = [{'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
                            'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)]
                 fig.update_layout(shapes=shapes)
+
+            if dataType == 'average-img' and xAxis == 'phase':
+                bin_edges = np.linspace(0, 2, noOfBins + 1)
+                colors = ["lightblue", "lightgray"]
+                shapes = [{'type': 'rect', 'x0': bin_edges[i], 'x1': bin_edges[i + 1], 'y0': 0, 'y1': 1, 'xref': 'x', 'yref': 'paper',
+                           'fillcolor': colors[i % len(colors)], 'opacity': 0.2, 'line': {'width': 0}} for i in range(noOfBins)]
+                fig.update_layout(shapes=shapes)
             fig.update_layout(
                 height=800,
                 showlegend=True,
@@ -859,7 +1014,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
             else:
                 new_annotation_list = []
                 new_next_number = 1
-                existing_ids = [key for key in annotation_mapping if 'No.' not in key]
+                existing_ids = [key for key in annotation_mapping if 'No.' not in key and 'Focus' not in key]
                 for ex_id in existing_ids:
                     wavetype, clicked_phase = ex_id.split('_')
                     
@@ -910,7 +1065,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 children = []
     # fig.update_layout(template="plotly_dark")
     # print("imgsrc", imgsrc)
-    return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None
+    return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None, fig_img
 
 
 @dash_app.callback(

@@ -1,0 +1,418 @@
+import numpy as np
+from astropy.time import Time
+import math
+import pandas as pd
+import re
+from dash import dcc, html
+from plotly import graph_objects as go
+from db import get_db, close_db, fetching_data, get_data
+
+
+
+isDB = False
+rawdata, dataList, data_for_df = fetching_data('ZTF_J1539', isDB)
+
+data_type_options = [
+    {'label': 'Average Data', 'value': 'average'},
+    {'label': 'Raw Data', 'value': 'raw'},
+]
+xAxis_options = [
+    {'label': 'Phase', 'value': 'phase'},
+    {'label': 'MJD', 'value': 'mjd'},
+    {'label': 'Datetime', 'value': 'time'},
+    {'label': 'Days', 'value': 'day'},
+    {'label': 'Hours', 'value': 'hour'},
+    {'label': 'Minutes', 'value': 'minute'},
+    {'label': 'Seconds', 'value': 'second'},
+]
+errorBars_options = [
+    {'label': 'Show as Error Bar', 'value': 'bar'},
+    {'label': 'Show as Separate Data', 'value': 'separate'},
+    {'label': 'Hide', 'value': 'hide'}
+]
+
+plotType_options = [
+    {'label': 'Marker', 'value': 'markers'},
+    {'label': 'Line', 'value': 'lines'},
+    {'label': 'Marker+Line', 'value': 'lines+markers'}
+]
+
+
+color_list = [
+    "rgb(0, 0, 216)",       # Bright Blue
+    "rgb(253, 192, 69)",    # Bright Yellow-Orange
+    "rgb(92, 53, 248)",     # Vibrant Blue
+    "rgb(220, 145, 18)",    # Golden Orange
+    "rgb(153, 97, 255)",    # Lavender Purple
+    "rgb(178, 102, 1)",     # Dark Orange
+    "rgb(206, 139, 255)",   # Light Purple
+    "rgb(134, 64, 0)",      # Burnt Orange
+    "rgb(231, 191, 251)",   # Pale Lilac
+    "rgb(92, 27, 0)"        # Deep Brown
+]
+
+
+def weightedAvg(element, error):
+    # Convert to NumPy array with float dtype
+    elements = np.array(element, dtype=float)
+    # Convert to NumPy array with float dtype
+    errors = np.array(error, dtype=float)
+
+    # elements = np.array(element)
+    # errors = np.array(error)
+
+    # Check for NaN values in elements or errors
+    if np.any(np.isnan(elements)) or np.any(np.isnan(errors)):
+        return np.nan, np.nan
+
+    variance = errors * errors
+    weights = 1.0 / variance
+
+    sum = 0.0
+    sumW = 0.0
+
+    for (e, w) in zip(elements, weights):
+        sum += e * w
+        sumW += w
+
+    avg = sum / sumW  # the weighted mean
+    avgErr = 1 / math.sqrt(sumW)  # standard error of the weighted mean
+    # print("Input: ",element, error)
+    # print("Output: ",avg, avgErr)
+    return avg, avgErr
+
+
+def normalAvg(element, error):
+    # Convert to NumPy array with float dtype
+    elements = np.array(element, dtype=float)
+    # Convert to NumPy array with float dtype
+    errors = np.array(error, dtype=float)
+    # Check for NaN values in elements or errors
+    if np.any(np.isnan(elements)) or np.any(np.isnan(errors)):
+        return np.nan, np.nan
+    avg = np.average(elements)
+    avgErr = np.sqrt(np.sum(errors**2)) / len(errors)
+
+    return avg, avgErr
+
+
+def create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate, plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth):
+    traces = []
+    color = color_list[color_index % len(color_list)]
+    # print(customdata)
+    common_props = {
+        'x': x_value,
+        'y': y_value,
+        'mode': plotType,
+        'opacity': 0.8,
+        'name': f"{name} ({len(y_value)})",
+        'legendgroup': wave_type.lower(),
+        'legendgrouptitle_text': f"{wave_type} Group",
+        'marker': {'color': color, 'size': pointSize},
+        'line': {'color': color, 'width': lineWidth},
+        'customdata': customdata,
+        'hoverinfo': hoverinfo,
+        'hovertemplate': hovertemplate
+    }
+    if errorBars == 'bar':
+        trace = go.Scattergl(
+            **common_props,
+            error_y=dict(type='data', array=e_value)
+        )
+        traces.append(trace)
+    elif errorBars == 'hide':
+        trace = go.Scattergl(**common_props)
+        traces.append(trace)
+    elif errorBars == 'separate':
+        traces.append(go.Scattergl(**common_props))
+        traces.append(go.Scattergl(
+            x=x_value,
+            y=np.array(y_value) + np.array(e_value),
+            mode=plotType,
+            opacity=0.8,
+            name=f'{name} Error (+) ({len(y_value)})',
+            legendgroup=wave_type.lower(),
+            legendgrouptitle_text=f"{wave_type} Group",
+            marker={'color': color},
+            line={'color': color}
+        ))
+        traces.append(go.Scattergl(
+            x=x_value,
+            y=np.array(y_value) - np.array(e_value),
+            mode=plotType,
+            opacity=0.8,
+            name=f'{name} Error (-) ({len(y_value)})',
+            legendgroup=wave_type.lower(),
+            legendgrouptitle_text=f"{wave_type} Group",
+            marker={'color': color},
+            line={'color': color}
+        ))
+    return traces
+
+
+def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname, pointSize, lineWidth):
+    traces = []
+    color_index = 0
+    if pathname == "/noise":
+        errorBars = 'hide'
+    for label in dataSelection:
+        epoch, r_in, r_out = label.split('_')
+        epoch = str(epoch)
+        r_in = int(r_in)
+        r_out = int(r_out)
+        # if f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}" not in rawdata:
+        #     rawdata[f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}"] = get_data("jwst_rawdata","ZTF_J1539",f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}")
+        # d = rawdata[f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}"]
+        d = get_data("jwst_rawdata", rawdata, data_for_df,
+                     "ZTF_J1539", isDB, epoch, wave_type, r_in, r_out)
+        # d = get_data("jwst_rawdata","ZTF_J1539",f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}")
+        # d = rawdata[f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}"]
+        # d = rawdata[epoch][wave_type.lower()][r_in][r_out]
+        time = Time(np.array(d['time']), format="mjd", scale="tdb")
+        time_mjd = np.array(d['time_mjd'])
+        time_second = np.array(d['time_second'])
+        time_minute = np.array(d['time_minute'])
+        time_hour = np.array(d['time_hour'])
+        time_day = np.array(d['time_day'])
+        time_day = np.array(d['time_day'])
+        phase_values = np.array(d['phase_values'])
+        psf_flux_time = np.array(d['psf_flux_time'])
+        psf_flux_unc_time = np.array(d['psf_flux_unc_time'])
+        frame = np.array(d['frame']).astype(int)
+        customdata_time = np.array(d['customdata_time'])
+        filename_arr_time = np.array([d["filename"] for d in customdata_time])
+
+        phase_values_phase = np.array(d['phase_values_phase'])
+        time_mjd_phase = np.array(d['time_mjd_phase'])
+        psf_flux_phase = np.array(d['psf_flux_phase'])
+        psf_flux_unc_phase = np.array(d['psf_flux_unc_phase'])
+        frame_phase = np.array(d['frame_phase']).astype(int)
+        customdata_phase = np.array(d['customdata_phase'])
+        filename_arr_phase = np.array(
+            [d["filename"] for d in customdata_phase])
+        # print(customdata_phase)
+        time_arrays = {
+            'mjd': time_mjd,
+            'time': time_mjd,
+            'second': time_second,
+            'minute': time_minute,
+            'hour': time_hour,
+            'day': time_day
+        }
+        noOfChunks = len(psf_flux_time) // noOfDataPoint
+        bin_edges = np.linspace(0, 2, noOfBins + 1)
+        name = f'{epoch}.{wave_type}.{r_in}.{r_out}'
+
+        if dataType == 'average':
+            hovertemplate = ('Y-Axis: %{y}<br>'
+                             #  'filename_list: %{customdata.filename_list}<br>'
+                             'Phase: %{customdata.phase:.3f}<extra></extra>'
+                             )
+            hoverinfo = "all"
+            x_value = []
+            y_value = []
+            e_value = []
+            # # ===================== For checking
+            # x_value2 = []
+            # y_value2 = []
+            # e_value2 = []
+            # # ==================================
+            customdata = []
+            if xAxis == 'phase':
+                bin_indices = np.digitize(phase_values_phase, bin_edges) - 1
+                for i in range(noOfBins):
+                    bin_mask = (bin_indices == i)
+                    if np.any(bin_mask):
+                        x_value.append((bin_edges[i] + bin_edges[i+1]) / 2)
+                        avg, avgErr = weightedAvg(np.array(psf_flux_phase)[
+                                                  bin_mask], np.array(psf_flux_unc_phase)[bin_mask])
+                        y_value.append(avg)
+                        e_value.append(avgErr)
+                        customdata.append({
+                            'mjd': time_mjd_phase[bin_mask].mean(),
+                            'time': Time(time_mjd_phase[bin_mask].mean(), format="mjd", scale="tdb").datetime,
+                            'phase': (bin_edges[i] + bin_edges[i+1]) / 2,
+                            'datatype': "average",
+                            'y_list': np.array(psf_flux_phase)[bin_mask],
+                            'y_err_list': np.array(psf_flux_unc_phase)[bin_mask],
+                            'phase_list': np.array(phase_values_phase)[bin_mask],
+                            'filename_list': np.array(filename_arr_phase)[bin_mask]
+                        })
+                        # # ===================== For checking
+                        # x_value2.append((bin_edges[i] + bin_edges[i+1]) / 2)
+                        # avg, avgErr = normalAvg(np.array(psf_flux_phase)[bin_mask], np.array(psf_flux_unc_phase)[bin_mask])
+                        # y_value2.append(avg)
+                        # e_value2.append(avgErr)
+                        # # ==================================
+
+            else:
+                avg_time, remaining_time = [], []
+                # avg_time, remaining_time, y_value, e_value = [], [], [], []
+                # customdata = []
+                for i in range(noOfChunks):
+                    chunk_flux_time = psf_flux_time[i *
+                                                    noOfDataPoint: (i + 1) * noOfDataPoint]
+                    chunk_flux_unc_time = psf_flux_unc_time[i *
+                                                            noOfDataPoint: (i + 1) * noOfDataPoint]
+                    avg, avgErr = weightedAvg(
+                        chunk_flux_time, chunk_flux_unc_time)
+                    y_value.append(avg)
+                    e_value.append(avgErr)
+                    customdata.append({
+                        'mjd': time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
+                        'time': Time(time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(), format="mjd", scale="tdb").datetime,
+                        'phase': phase_values[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
+                        'datatype': "average",
+                        'y_list': chunk_flux_time,
+                        'y_err_list': chunk_flux_unc_time,
+                        'phase_list': customdata_time[i * noOfDataPoint: (i + 1) * noOfDataPoint],
+                        'filename_list': filename_arr_time[i * noOfDataPoint: (i + 1) * noOfDataPoint]
+                    })
+
+                    # # ===================== For checking
+                    # avg, avgErr = normalAvg(chunk_flux_time, chunk_flux_unc_time)
+                    # y_value2.append(avg)
+                    # e_value2.append(avgErr)
+                    # # ==================================
+                remaining_start_idx = noOfChunks * noOfDataPoint
+                remaining_fluxes = psf_flux_time[remaining_start_idx:]
+                remaining_flux_uncs = psf_flux_unc_time[remaining_start_idx:]
+                if xAxis in time_arrays:
+                    avg_time = [np.mean(
+                        time_arrays[xAxis][i * noOfDataPoint: (i + 1) * noOfDataPoint]) for i in range(noOfChunks)]
+                    remaining_time = time_arrays[xAxis][remaining_start_idx:]
+                else:
+                    raise ValueError(f"Unknown xAxis value: {xAxis}")
+                if len(remaining_time) > 0:
+                    avg_time.append(np.mean(remaining_time))
+                    avg, avgErr = weightedAvg(
+                        remaining_fluxes, remaining_flux_uncs)
+                    y_value.append(avg)
+                    e_value.append(avgErr)
+                    customdata.append({
+                        'mjd': time_mjd[remaining_start_idx:].mean(),
+                        'time': Time(time_mjd[remaining_start_idx:].mean(), format="mjd", scale="tdb").datetime,
+                        'phase': phase_values[remaining_start_idx:].mean(),
+                        'datatype': "average",
+                        'y_list': remaining_time,
+                        'y_err_list': remaining_flux_uncs,
+                        'phase_list': customdata_time[remaining_start_idx:],
+                        'filename_list': filename_arr_time[remaining_start_idx:]
+                    })
+                    # # ===================== For checking
+                    # avg, avgErr = normalAvg(remaining_fluxes, remaining_flux_uncs)
+                    # y_value2.append(avg)
+                    # e_value2.append(avgErr)
+                    # # ==================================
+                if xAxis == 'time':
+                    x_value = Time(avg_time, format="mjd",
+                                   scale="tdb").datetime
+                else:
+                    x_value = avg_time
+                # # ===================== For checking
+                # x_value2 = x_value
+                # # ==================================
+            if pathname == "/noise":
+                y_temp = [y/e for y, e in zip(y_value, e_value)]
+                y_value = y_temp
+                # # ===================== For checking
+                # y_temp2 = [y/e for y, e in zip(y_value2, e_value2)]
+                # y_value2 = y_temp2
+                # # ==================================
+            traces.extend(create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate,
+                          plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth))
+            # # ===================== For checking
+            # traces.extend(create_trace(x_value2, y_value2, e_value2, customdata, hovertemplate,
+            #               plotType, errorBars, name+" normal avg ", wave_type, color_index+1, pointSize, lineWidth))
+            # # ===================================
+        elif dataType == 'raw':
+            # hovertemplate = ('Y-Axis: %{y}<br>'
+            #                  'MJD: %{customdata.mjd:.5f}<br>'
+            #                  'Time:  %{customdata.time}<br>'
+            #                  'Phase: %{customdata.phase:.3f}<extra></extra>'
+            #                  )
+            hovertemplate = None
+            hoverinfo = "none"
+            x_value = phase_values_phase
+            y_value = psf_flux_phase
+            e_value = psf_flux_unc_phase
+            customdata = customdata_phase
+            if xAxis != 'phase':
+                y_value = psf_flux_time
+                e_value = psf_flux_unc_time
+                customdata = customdata_time
+                if xAxis in time_arrays:
+                    x_value = time_arrays[xAxis]
+                else:
+                    raise ValueError(f"Unknown xAxis value: {xAxis}")
+                if xAxis == 'time':
+                    x_value = Time(x_value, format="mjd", scale="tdb").datetime
+            if pathname == "/noise":
+                y_temp = [y/e for y, e in zip(y_value, e_value)]
+                y_value = y_temp
+            traces.extend(create_trace(x_value, y_value, e_value, customdata, hoverinfo, hovertemplate,
+                          plotType, errorBars, name, wave_type, color_index, pointSize, lineWidth))
+        color_index = color_index+1
+    return traces
+
+
+def update_df(wave_type, dataType, dataSelection, plotType, noOfDataPoint):
+    data = {}
+    max_length = 0
+    for label in dataSelection:
+        epoch, r_in, r_out = label.split('_')
+        epoch = str(epoch)
+        r_in = int(r_in)
+        r_out = int(r_out)
+        # if f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}" not in data_for_df:
+        #     data_for_df[f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}"] = get_data("df","ZTF_J1539",f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}")
+        # d = data_for_df[f"{epoch}_{wave_type.lower()}_{r_in}_{r_out}"]
+        # d = data_for_df[epoch][wave_type.lower()][r_in][r_out]
+        d = get_data("df", rawdata, data_for_df, "ZTF_J1539",
+                     isDB, epoch, wave_type, r_in, r_out)
+        psf_flux_time = np.array(d['psf_flux_time'])
+        psf_flux_unc_time = np.array(d['psf_flux_unc_time'])
+        time_mjd = np.array(d['time_mjd'])
+
+        noOfChunks = len(psf_flux_time) // noOfDataPoint
+        name = f'{wave_type}.{r_in}.{r_out}'
+        x_value = []
+        y_value = []
+        if dataType == 'average':
+            avg_time, remaining_time, y_value, e_value = [], [], [], []
+            for i in range(noOfChunks):
+                chunk_flux_time = psf_flux_time[i *
+                                                noOfDataPoint: (i + 1) * noOfDataPoint]
+                chunk_flux_unc_time = psf_flux_unc_time[i *
+                                                        noOfDataPoint: (i + 1) * noOfDataPoint]
+                avg, avgErr = weightedAvg(chunk_flux_time, chunk_flux_unc_time)
+                y_value.append(avg)
+                e_value.append(avgErr)
+            remaining_start_idx = noOfChunks * noOfDataPoint
+            remaining_fluxes = psf_flux_time[remaining_start_idx:]
+            remaining_flux_uncs = psf_flux_unc_time[remaining_start_idx:]
+            avg_time = [np.mean(
+                time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint]) for i in range(noOfChunks)]
+            remaining_time = time_mjd[remaining_start_idx:]
+            if len(remaining_time) > 0:
+                avg_time.append(np.mean(remaining_time))
+                avg, avgErr = weightedAvg(
+                    remaining_fluxes, remaining_flux_uncs)
+                y_value.append(avg)
+                e_value.append(avgErr)
+            x_value = avg_time
+        elif dataType == 'raw':
+            x_value = time_mjd
+            y_value = psf_flux_time
+        data[name] = y_value
+        max_length = max(max_length, len(y_value))
+    df = pd.DataFrame(data=data)
+    return df
+
+
+def get_epoch(text):
+    """Extract epoch from the file name using regex."""
+    match = re.search(r'epoch(\d+)\_', text)
+    if match:
+        return match.group(1)
+    return None
