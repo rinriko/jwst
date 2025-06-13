@@ -207,18 +207,19 @@ def process_data(collection_name):
                                 for i, item in enumerate(customdata_time)
                             ]
 
-                            phase_values_phase = np.concatenate(
-                                (phase_values_sorted, phase_values_sorted + 1))
-                            time_mjd_phase = np.concatenate(
-                                (time_sorted, time_sorted))
-                            psf_flux_phase = np.concatenate(
-                                (psf_flux_sorted, psf_flux_sorted))
-                            psf_flux_unc_phase = np.concatenate(
-                                (psf_flux_unc_sorted, psf_flux_unc_sorted))
-                            frame_phase = np.concatenate(
-                                (frame_sorted, frame_sorted))
-                            customdata_phase = np.concatenate(
-                                (customdata_sorted_objects, customdata_sorted_objects))
+                            # # [0-1] => [0-2]
+                            # phase_values_phase = np.concatenate(
+                            #     (phase_values_sorted, phase_values_sorted + 1))
+                            # time_mjd_phase = np.concatenate(
+                            #     (time_sorted, time_sorted))
+                            # psf_flux_phase = np.concatenate(
+                            #     (psf_flux_sorted, psf_flux_sorted))
+                            # psf_flux_unc_phase = np.concatenate(
+                            #     (psf_flux_unc_sorted, psf_flux_unc_sorted))
+                            # frame_phase = np.concatenate(
+                            #     (frame_sorted, frame_sorted))
+                            # customdata_phase = np.concatenate(
+                            #     (customdata_sorted_objects, customdata_sorted_objects))
 
                             df_rawdata[epoch][wave_type][r_in][r_out] = {
                                 "time_mjd": time_mjd,
@@ -227,7 +228,10 @@ def process_data(collection_name):
                             }
 
                             valid_mask_time = ~np.isnan(psf_flux_time)
-                            valid_mask_phase = ~np.isnan(psf_flux_phase)
+                            # # [0-1] => [0-2]
+                            # valid_mask_phase = ~np.isnan(psf_flux_phase)
+                            # [0-1]
+                            valid_mask_phase = ~np.isnan(psf_flux_sorted)
 
 
                             rawdata[epoch][wave_type][r_in][r_out] = {
@@ -242,13 +246,21 @@ def process_data(collection_name):
                                 "psf_flux_unc_time": list(np.array(psf_flux_unc_time)[valid_mask_time]),
                                 "frame": list(np.array(frame)[valid_mask_time].astype(str)),
                                 "customdata_time": list(np.array(customdata_time_objects)[valid_mask_time]),
+                                # [0-1]
+                                "phase_values_phase": list(np.array(phase_values_sorted)[valid_mask_phase]),
+                                "time_mjd_phase": list(np.array(time_sorted)[valid_mask_phase]),
+                                "psf_flux_phase": list(np.array(psf_flux_sorted)[valid_mask_phase]),
+                                "psf_flux_unc_phase": list(np.array(psf_flux_unc_sorted)[valid_mask_phase]),
+                                "frame_phase": list(np.array(frame_sorted)[valid_mask_phase].astype(str)),
+                                "customdata_phase": list(np.array(customdata_sorted_objects)[valid_mask_phase]),
 
-                                "phase_values_phase": list(np.array(phase_values_phase)[valid_mask_phase]),
-                                "time_mjd_phase": list(np.array(time_mjd_phase)[valid_mask_phase]),
-                                "psf_flux_phase": list(np.array(psf_flux_phase)[valid_mask_phase]),
-                                "psf_flux_unc_phase": list(np.array(psf_flux_unc_phase)[valid_mask_phase]),
-                                "frame_phase": list(np.array(frame_phase)[valid_mask_phase].astype(str)),
-                                "customdata_phase": list(np.array(customdata_phase)[valid_mask_phase]),
+                                # # [0-1] => [0-2]
+                                # "phase_values_phase": list(np.array(phase_values_phase)[valid_mask_phase]),
+                                # "time_mjd_phase": list(np.array(time_mjd_phase)[valid_mask_phase]),
+                                # "psf_flux_phase": list(np.array(psf_flux_phase)[valid_mask_phase]),
+                                # "psf_flux_unc_phase": list(np.array(psf_flux_unc_phase)[valid_mask_phase]),
+                                # "frame_phase": list(np.array(frame_phase)[valid_mask_phase].astype(str)),
+                                # "customdata_phase": list(np.array(customdata_phase)[valid_mask_phase]),
                             }
     data_for_df = {}
     for epoch in df_rawdata:

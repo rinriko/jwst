@@ -71,7 +71,28 @@ def url_exists(url: str, timeout: float = 5.0) -> bool:
         return 200 <= resp.status_code < 300
     except requests.RequestException:
         return False
-    
+
+def contrast_text_color(bg_str: str) -> str:
+    """
+    Given a background color in hex (e.g. "#3a7bd5") or
+    CSS rgb string (e.g. "rgb(58, 123, 213)"),
+    return "black" if it’s light, otherwise "white".
+    """
+    # try hex first
+    if bg_str.startswith('#'):
+        bg = bg_str.lstrip('#')
+        r, g, b = (int(bg[i:i+2], 16) for i in (0, 2, 4))
+    else:
+        # look for "rgb(r, g, b)" or "rgba(r, g, b, a)"
+        m = re.match(r'rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)', bg_str)
+        if not m:
+            raise ValueError(f"Unrecognized color format: {bg_str}")
+        r, g, b = map(int, m.groups())
+
+    # compute luminance (ITU-R BT.601)
+    lum = (r * 299 + g * 587 + b * 114) / 1000
+    return 'black' if lum > 128 else 'white'
+
 @dash_app.callback(
     Output("download-data", "data"),
     Input("btn-download", "n_clicks"),
@@ -144,12 +165,12 @@ def sync_input_slider(noOfBins, noOfBinsValue, noOfDataPoint, noOfDataPointValue
 def toggle_avg_sections(data_type, xAxis):
     if (data_type == 'average-img' or data_type == 'average') and xAxis == 'phase':
         avg_group_style = {}
-        avg_group1_style = {'display': 'none'}
-        avg_group2_style = {}
-    elif (data_type == 'average-img' or data_type == 'average') and xAxis != 'phase':
-        avg_group_style = {}
         avg_group1_style = {}
         avg_group2_style = {'display': 'none'}
+    elif (data_type == 'average-img' or data_type == 'average') and xAxis != 'phase':
+        avg_group_style = {}
+        avg_group1_style = {'display': 'none'}
+        avg_group2_style = {}
     else:
         avg_group_style = {'display': 'none'}
         avg_group1_style = {'display': 'none'}
@@ -685,7 +706,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
         # return is_open, imgsrc, modal_details, data
 
     elif pathname != '/matrix':
-        if triggered_id == 'plot-chart' and clickAnnotationData:
+        if triggered_id == 'plot-chart' and dataType != 'average-img' and clickAnnotationData:
             if annotation_mapping[clickAnnotationData["annotation"]["text"]] != anno_click:
                 anno_click = annotation_mapping[clickAnnotationData["annotation"]["text"]]
                 for a in annotations:
@@ -811,124 +832,97 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                                     child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
                                     break
         elif not is_anno_clicked and triggered_id == 'plot-chart' and dataType == 'average-img' and clickData:
-            print("2")
+            # print("2")
             pt = clickData['points'][0]
             curveNumber = pt.get("curveNumber")
+            
+            trace = fig['data'][curveNumber]
+            # marker traces tend to have trace['marker']['color']
+            color = trace.get('marker', {}).get('color',
+                    trace.get('line', {}).get('color', 'unknown'))
+            trace_name = trace.get('name', "").split()[0]
+            xTitle = next(option['label'] for option in xAxis_options if option['value'] == xAxis)
+            # print(trace_name)
             x, y, customdata = pt.get("x"), pt.get(
                 "y"), pt.get("customdata", {})
-            # print(customdata)
             y_list = customdata.get("y_list", [])
             y_err_list = customdata.get("y_err_list", [])
             phase_list = customdata.get("phase_list", [])
+            time_list = customdata.get("time_list", [])
             filename_list = customdata.get("filename_list", [])
+            x_value = phase_list
+            if xAxis != 'phase':
+                x_value = time_list
+            count = len(x_value)
+            trace_label = f"{xTitle}: {x}"
 
             img_trace = go.Scattergl(
-                x=phase_list,
-                y=np.array(y_list),
+                x=x_value,
+                y=y_list,
                 mode=plotType,
                 opacity=0.8,
-                marker={'color': "rgba(0, 0, 0, 0.5)", 'size': pointSize},
-                line={'color': "rgba(0, 0, 0, 0.5)", 'width': lineWidth},
-            ) 
+                name=f"{trace_label} ({count} pts)",
+                marker={
+                    'color': color,
+                    'size': pointSize,
+                    'line': {'color': 'black', 'width': 1}
+                },
+                line={'color': color, 'width': lineWidth},
+                showlegend=True
+            )
             fig_img = make_subplots(rows=1, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-                                # x_title=next(
-                                #     option['label'] for option in xAxis_options if option['value'] == xAxis),
-                                # y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
+                                x_title=xTitle,
+                                y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
                                 )
             fig_img.add_trace(img_trace, row=1, col=1)
+            fig_img.update_layout(
+                legend=dict(
+                    title=trace_name,
+                    bgcolor="rgba(0,0,0,0)"  # make legend background transparent if you like
+                )
+            )
+            
             phase, wavetype, r_in, r_out = customdata.get("phase"), customdata.get(
                 "type"), customdata.get("r_in"), customdata.get("r_out")
             xref, yref = ("x", "y") if curveNumber < len(dataSelectionInput) else ("x2", "y2")
             fig_anno_index = f"{wavetype}_{phase}"
-            # fig_anno_index = f"{wavetype}_{phase}_{r_in}_{r_out}"
             clicked_phase = phase
-            # if annotations:
-            #     try:
-            #         last_annotation = annotations[-1]
-            #         last_number = int(last_annotation['text'].split()[-1])
-            #         next_number = last_number + 1
-            #     except (ValueError, IndexError):
-            #         next_number = 1
-            # else:
-            #     next_number = 1
-            #     if 'layout' not in current_fig['layout']:
-            #         current_fig['layout']['annotations'] = []
-            #     annotations = current_fig['layout']['annotations']
-            # existing_ids = [key for key in annotation_mapping if 'No.' not in key]
-
-            # if fig_anno_index not in existing_ids:
             annotations = []
             existing_ids = []
-            for trace in current_fig['data']:
-                customdata_values = trace.get("customdata", [])
-                # Iterate over customdata to check for matching phase values
-                for i, customdata_point in enumerate(customdata_values):
-                    if customdata_point.get("type") != wavetype:
-                        break
-                    if customdata_point.get("phase") == clicked_phase:
-                        print(customdata_point)
-                        print(trace["x"][i], trace["y"][i])
-                        # Create an annotation at the top for the matched phase
-                        new_annotation = dict(
-                            x=trace["x"][i],
-                            y=trace["y"][i],  # Offset above max y for visibility
-                            xref=xref,
-                            yref=yref,
-                            text=f"Focus on phase {clicked_phase}",
-                            showarrow=True,
-                            arrowhead=7,
-                            xanchor="center",
-                            yanchor="bottom",
-                            ax=0,
-                            ay=-40,
-                            font=dict(color='white', size=14),
-                            bgcolor='black',
-                            bordercolor='black',
-                            borderwidth=2,
-                            borderpad=4,
-                            arrowcolor='black',
-                            # id=fig_anno_index,
-                            captureevents=True
-                        )
-                        annotation_mapping[fig_anno_index] = f"Focus on phase {clicked_phase}"
-                        annotation_mapping[f"Focus on phase {clicked_phase}"] = fig_anno_index
-                        # Add the annotation
-                        annotations.append(new_annotation)
-            #     next_number += 1
-            #     # annotations.append(new_annotation)
-                fig['layout']['annotations'] = annotations
-
-            #     cond, bbox, new_children = process_points(
-            #         pt, 'click', tooltipFontSize, thumnailsSize, dataSelectionState, new_annotation)
-            #     if cond:
-            #         children += new_children
-            # else:
-            #     # print(fig_anno_index)
-            #     for a in annotations:
-            #         if a["text"] == annotation_mapping[fig_anno_index]:
-            #             a["bgcolor"] = 'rgba(0, 240, 255, 0.7)'
-            #             a["font"] = {"color": "black"}  # Change text color for visibility
-            #         else:
-            #             a["bgcolor"] = "black"
-            #             a["font"] = {"color": "white"}  # Keep other annotations readable
-            #     fig['layout']['annotations'] = annotations
-
-            #     for c in children:
-            #         if c.get('props', {}).get('id', {}).get('index') == fig_anno_index:
-            #             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-            #                 for child in c['props']['children']:
-            #                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-            #                         child['props']['style']['background-color'] = 'rgba(0, 240, 255, 0.7)'
-            #                         child['props']['style']['color'] = 'rgba(0, 0, 0, 1)'
-            #                         break
-            #         else:
-            #             if c.get('type') == 'Div' and c.get('props', {}).get('children'):
-            #                 for child in c['props']['children']:
-            #                     if child.get('type') == 'Div' and child.get('props', {}).get('children'):
-            #                         # child['props']['style']['background-color'] = 'rgba(0, 0, 0, 0.5)'
-            #                         child['props']['style']['background-color'] = 'rgba(0, 0, 0, 1)'
-            #                         child['props']['style']['color'] = 'rgba(255, 255, 255, 1)'
-            #                         break
+            txt_color = contrast_text_color(color)
+            # for trace in current_fig['data']:
+            customdata_values = trace.get("customdata", [])
+            # Iterate over customdata to check for matching phase values
+            for i, customdata_point in enumerate(customdata_values):
+                if customdata_point.get("type") != wavetype:
+                    break
+                if customdata_point.get("phase") == clicked_phase:
+                    # Create an annotation at the top for the matched phase
+                    new_annotation = dict(
+                        x=trace["x"][i],
+                        y=trace["y"][i],  # Offset above max y for visibility
+                        xref=xref,
+                        yref=yref,
+                        text=f"Focus on phase {clicked_phase:.3f}",
+                        showarrow=True,
+                        arrowhead=7,
+                        xanchor="center",
+                        yanchor="bottom",
+                        ax=0,
+                        ay=-40,
+                        font=dict(color=txt_color, size=14),
+                        bgcolor=color,
+                        bordercolor='black',
+                        borderwidth=2,
+                        borderpad=4,
+                        arrowcolor='black',
+                        id=fig_anno_index,
+                        captureevents=True
+                    )
+                    annotation_mapping[fig_anno_index] = f"Focus on phase {clicked_phase:.3f}"
+                    annotation_mapping[f"Focus on phase {clicked_phase:.3f}"] = fig_anno_index
+                    annotations.append(new_annotation)
+            fig['layout']['annotations'] = annotations
         elif not is_anno_clicked and triggered_id in ['legendFontSize', 'labelFontSize', 'pointSize', 'lineWidth']:
             for trace in fig["data"]:
                 trace["marker"]['size'] = pointSize
@@ -952,6 +946,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
             fig['layout']['annotations'] = annotations
         elif not is_anno_clicked:
             # print("4")
+            # print(noOfBins, noOfDataPoint)
             SW_traces = update_trace('SW', dataType, dataSelectionInput,
                                      noOfBins, xAxis, errorBars, plotType, noOfDataPoint, pathname, pointSize, lineWidth)
             LW_traces = update_trace('LW', dataType, dataSelectionInput,
@@ -961,7 +956,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                                 #     option['label'] for option in xAxis_options if option['value'] == xAxis),
                                 # y_title='Surface Brightness (MJy/sr)' if pathname != "/noise" else 'Signal-to-noise ratio'
                                 )
-
+            # print(SW_traces)
             for trace in SW_traces:
                 fig.add_trace(trace, row=1, col=1)
             for trace in LW_traces:
@@ -1011,6 +1006,7 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 children = []
                 annotation_mapping = {}
                 anno_click = ""
+                fig_img = go.Figure()
             else:
                 new_annotation_list = []
                 new_next_number = 1
@@ -1061,8 +1057,13 @@ def combined_callback(img_n_clicks, close_n_clicks, delete_n_clicks, dataType, d
                 # fig.update_layout(annotations=new_annotation_list) 
                 annotations = new_annotation_list
 
+
             if triggered_id in ['dataType', 'url']:
                 children = []
+                fig_img = go.Figure()
+            
+            if annotations == []:
+                fig_img = go.Figure()
     # fig.update_layout(template="plotly_dark")
     # print("imgsrc", imgsrc)
     return is_open, imgsrc, modal_details, data, fig, children, annotations, anno_click, annotation_mapping, None, None, fig_img
