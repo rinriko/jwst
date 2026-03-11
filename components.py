@@ -264,6 +264,72 @@ sidebar = html.Div(
     ]
 )
 
+plot_modal = dbc.Modal(
+    [
+        dbc.ModalHeader(dbc.ModalTitle("Image Plot")),
+        dbc.ModalBody(
+            dbc.Row(id="plot_modal_imageContent",
+                    children=[
+                        dbc.Col(
+                            id="image-plot",
+                            children=[
+                                html.Div([
+                                    dcc.Store(
+                                        id='image-plot-annotations-store', data=[]),
+                                    dcc.Store(
+                                        id='image-plot-annotations-mapping', data={}),
+                                    dcc.Store(
+                                        id='image-plot-annotations-clicked', data=""),
+                                    dcc.Graph(id='image-plot-chart',
+                                              className='bg-light', clear_on_unhover=True)
+                                ]),
+                                dcc.Tooltip(id="image-plot-graph-tooltip"),
+
+                            ]
+                        ),
+                        dbc.Col(
+                            [
+                                dcc.Store(id='value-store-plot_modal', data=0),
+                                dcc.Store(id='image-data-plot_modal', data={}),
+                                html.Div(id='image-container-plot_modal',
+                                         style={'display': 'flex', 'flexWrap': 'wrap', 'margin-top': '20px'}),
+                                dbc.Modal(
+                                    [
+                                        dbc.ModalHeader(
+                                            dbc.ModalTitle("Image Details")),
+                                        dbc.ModalBody(
+                                            [
+                                                html.Img(id='modal-image-plot_modal',
+                                                         style={'width': '100%'}),
+                                                # New div for displaying details
+                                                html.Div(
+                                                    id='modal-details-plot_modal')
+                                            ]
+                                        ),
+                                        dbc.ModalFooter(
+                                            dbc.Button("Close", id='close-modal-plot_modal',
+                                                       className='ms-auto', n_clicks=0)
+                                        ),
+                                    ],
+                                    id='image-modal-plot_modal',
+                                    is_open=False,
+                                )
+                            ])
+                    ],
+                    style={'margin': '8px', 'display': 'block'}),
+        ),
+        dbc.ModalFooter(
+            dbc.Button("Close", id="close-image-plot-modal",
+                       className="ms-auto", n_clicks=0)
+        ),
+    ],
+    id="image-plot-modal",
+    is_open=False,
+    size="xl",  # Optional: make modal extra large
+    fullscreen=True,  # Optional: take full screen
+    scrollable=True,  # Optional: allow scrolling inside modal
+)
+
 content = html.Div(id="page-content", children=[
     html.P(id='plot-title', className='font-weight-bold'),
     dbc.Row(id="2d_plot",
@@ -280,22 +346,22 @@ content = html.Div(id="page-content", children=[
                                       className='bg-light', clear_on_unhover=True)]),
                             dcc.Tooltip(id="graph-tooltip"),
                     ]),
-                dbc.Col(
-                    id="image-plot",
-                    children=[
-                        html.Div([
-                            # html.P(id='plot-title',
-                            #        className='font-weight-bold'),
-                            dcc.Store(
-                                id='image-plot-annotations-store', data=[]),
-                            dcc.Store(
-                                id='image-plot-annotations-mapping', data={}),
-                            dcc.Store(
-                                id='image-plot-annotations-clicked', data=""),
-                            dcc.Graph(id='image-plot-chart',
-                                      className='bg-light', clear_on_unhover=True)]),
-                            dcc.Tooltip(id="image-plot-graph-tooltip"),
-                    ])
+                # dbc.Col(
+                #     id="image-plot",
+                #     children=[
+                #         html.Div([
+                #             # html.P(id='plot-title',
+                #             #        className='font-weight-bold'),
+                #             dcc.Store(
+                #                 id='image-plot-annotations-store', data=[]),
+                #             dcc.Store(
+                #                 id='image-plot-annotations-mapping', data={}),
+                #             dcc.Store(
+                #                 id='image-plot-annotations-clicked', data=""),
+                #             dcc.Graph(id='image-plot-chart',
+                #                       className='bg-light', clear_on_unhover=True)]),
+                #             dcc.Tooltip(id="image-plot-graph-tooltip"),
+                #     ])
             ],
             style={'margin': '8px', 'display': 'none'}),
     dbc.Row(id="imageContent",
@@ -668,6 +734,7 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                             'y_err_list': np.array(psf_flux_unc_phase)[bin_mask],
                             'phase_list': np.array(phase_values_phase)[bin_mask],
                             'filename_list': np.array(filename_arr_phase)[bin_mask],
+                            'customdata': np.array(customdata_phase)[bin_mask],
                             'type': wave_type,
                             'r_in': r_in,
                             'r_out': r_out,
@@ -701,12 +768,14 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
 
                     time_list = []
                     if xAxis in time_arrays:
-                        time_list = time_arrays[xAxis][i * noOfDataPoint: (i + 1) * noOfDataPoint]
+                        time_list = time_arrays[xAxis][i *
+                                                       noOfDataPoint: (i + 1) * noOfDataPoint]
                     else:
                         raise ValueError(f"Unknown xAxis value: {xAxis}")
                     if xAxis == 'time':
-                        time_list = Time(time_list, format="mjd", scale="tdb").datetime
-                        
+                        time_list = Time(
+                            time_list, format="mjd", scale="tdb").datetime
+
                     customdata.append({
                         'mjd': time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(),
                         'time': Time(time_mjd[i * noOfDataPoint: (i + 1) * noOfDataPoint].mean(), format="mjd", scale="tdb").datetime,
@@ -739,7 +808,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
                 else:
                     raise ValueError(f"Unknown xAxis value: {xAxis}")
                 if xAxis == 'time':
-                    time_list = Time(time_list, format="mjd", scale="tdb").datetime
+                    time_list = Time(time_list, format="mjd",
+                                     scale="tdb").datetime
                 if len(remaining_time) > 0:
                     avg_time.append(np.mean(remaining_time))
                     avg, avgErr = weightedAvg(
@@ -801,7 +871,8 @@ def update_trace(wave_type, dataType, dataSelection, noOfBins, xAxis, errorBars,
             # customdata = customdata_phase
 
             # [0-1] -> [0-2]
-            x_value = np.concatenate((phase_values_phase, phase_values_phase + 1))
+            x_value = np.concatenate(
+                (phase_values_phase, phase_values_phase + 1))
             y_value = np.concatenate((psf_flux_phase,   psf_flux_phase))
             e_value = np.concatenate((psf_flux_unc_phase, psf_flux_unc_phase))
             customdata = np.concatenate((customdata_phase, customdata_phase))

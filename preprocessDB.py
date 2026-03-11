@@ -225,6 +225,7 @@ def process_data(collection_name):
                                 "time_mjd": time_mjd,
                                 "psf_flux_time": psf_flux_time,
                                 "psf_flux_unc_time": psf_flux_unc_time,
+                                "customdata_time": customdata_time_objects,
                             }
 
                             valid_mask_time = ~np.isnan(psf_flux_time)

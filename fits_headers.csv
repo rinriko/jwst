@@ -1,0 +1,379 @@
+Extension,Keyword,Value,Comment
+PRIMARY,SIMPLE,True,conforms to FITS standard
+PRIMARY,BITPIX,8,array data type
+PRIMARY,NAXIS,0,number of array dimensions
+PRIMARY,EXTEND,True,
+PRIMARY,DATE,2023-08-26T02:30:19.372,UTC date file created
+PRIMARY,ORIGIN,STSCI,Organization responsible for creating file
+PRIMARY,TIMESYS,UTC,principal time system for time-related keywords
+PRIMARY,TIMEUNIT,s,Default unit applicable to all time values
+PRIMARY,FILENAME,jw01666001001_02102_00001-seg001_nrcb1_o001_crfints.fits,Name of t
+PRIMARY,SDP_VER,2023_2a,Data processing (DP) Software Version
+PRIMARY,PRD_VER,PRDOPSSOC-062,S&OC Project Reference Database (PRD) Version
+PRIMARY,OSS_VER,008.005.000.000,Observatory Scheduling Software (OSS) Version
+PRIMARY,GSC_VER,GSC2431,Guide Star Catalog (GSC) Version
+PRIMARY,CAL_VER,1.11.4,Calibration Software Version
+PRIMARY,CAL_VCS,RELEASE,Calibration software version control sys number
+PRIMARY,DATAMODL,CubeModel,Type of data model
+PRIMARY,TELESCOP,JWST,Telescope used to acquire the data
+PRIMARY,HGA_MOVE,False,High Gain Antenna moved during data collection
+PRIMARY,PWFSEET,59979.57104056713,Previous WFS exposure end time
+PRIMARY,NWFSEST,59981.25749706019,Next WFS exposure start time
+PRIMARY,COMPRESS,False,On-board data compression was used (T/F)
+PRIMARY,ASNPOOL,jw01666_20230825t220040_pool.csv,Name of the ASN pool
+PRIMARY,ASNTABLE,jw01666-o001_20230825t220040_tso3_00002_asn.json,Name of the ASN t
+PRIMARY,TITLE,Validating JWST's in-orbit clock accuracy,Proposal title
+PRIMARY,PI_NAME,"Gandhi, Poshak",Principal investigator name
+PRIMARY,CATEGORY,GO,Program category
+PRIMARY,SCICAT,Stellar Physics and Stellar Types,Science category assigned during
+PRIMARY,DATE-OBS,2023-02-05,[yyyy-mm-dd] UTC date at start of exposure
+PRIMARY,TIME-OBS,19:02:07.281,[hh:mm:ss.sss] UTC time at start of exposure
+PRIMARY,DATE-BEG,2023-02-05T19:02:07.281,Date-time start of exposure
+PRIMARY,DATE-END,2023-02-06T04:28:41.361,Date-time end of exposure
+PRIMARY,OBS_ID,V01666001001P0000000002102,Programmatic observation identifier
+PRIMARY,VISIT_ID,01666001001,Visit identifier
+PRIMARY,PROGRAM,01666,Program number
+PRIMARY,OBSERVTN,001,Observation number
+PRIMARY,VISIT,001,Visit number
+PRIMARY,VISITGRP,02,Visit group identifier
+PRIMARY,SEQ_ID,1,Parallel sequence identifier
+PRIMARY,ACT_ID,02,Activity identifier
+PRIMARY,EXPOSURE,1,Exposure request number
+PRIMARY,BKGDTARG,False,Background target
+PRIMARY,TEMPLATE,NIRCam Time Series,Observation template used
+PRIMARY,OBSLABEL,Time Series Mode,Proposer label for the observation
+PRIMARY,ENG_QUAL,OK,Engineering data quality indicator from EngDB
+PRIMARY,ENGQLPTG,CALCULATED_TRACK_TR_202111,Quality of pointing information from En
+PRIMARY,VISITYPE,PRIME_TARGETED_FIXED,Visit type
+PRIMARY,VSTSTART,2023-02-05 18:26:18.1000000,UTC visit start time
+PRIMARY,VISITSTA,SUCCESSFUL,Status of a visit
+PRIMARY,NEXPOSUR,1,Total number of planned exposures in visit
+PRIMARY,INTARGET,False,At least one exposure in visit is internal
+PRIMARY,TARGOOPP,False,Visit scheduled as target of opportunity
+PRIMARY,TSOVISIT,True,Time Series Observation visit indicator
+PRIMARY,EXP_ONLY,False,Special commanding without SI configuration
+PRIMARY,CROWDFLD,False,Are the FGSes in a crowded field?
+PRIMARY,TARGPROP,NAME-ZTF-J153932.16+502738.8,Proposer's name for the target
+PRIMARY,TARGNAME,NAME ZTF J153932.16+502738.8,Standard astronomical catalog name fo
+PRIMARY,TARGTYPE,FIXED,"Type of target (fixed, moving, generic)"
+PRIMARY,TARGCAT,Star,Target category from APT
+PRIMARY,TARGDESC,Compact binary systems; White dwarfs,Target description from APT
+PRIMARY,TARG_RA,234.8839607668344,Target RA at mid time of exposure
+PRIMARY,TARG_DEC,50.46074748597033,Target Dec at mid time of exposure
+PRIMARY,TARGURA,0.1,Target RA uncertainty
+PRIMARY,TARGUDEC,0.1,Target Dec uncertainty
+PRIMARY,MU_RA,-0.00341300007424388,Target proper motion in RA
+PRIMARY,MU_DEC,-0.00382299995180801,Target proper motion in Dec
+PRIMARY,MU_EPOCH,2015-07-02 12:00:00.0000000,Target proper motion epoch
+PRIMARY,PROP_RA,234.8839720833333,Proposer's target RA
+PRIMARY,PROP_DEC,50.46075555555556,Proposer's target Dec
+PRIMARY,INSTRUME,NIRCAM,Instrument used to acquire the data
+PRIMARY,DETECTOR,NRCB1,Name of detector used to acquire the data
+PRIMARY,MODULE,B,"NIRCam module: A, B, or MULTIPLE"
+PRIMARY,CHANNEL,SHORT,Instrument channel
+PRIMARY,FILTER,F070W,Name of the filter element used
+PRIMARY,PUPIL,CLEAR,Name of the pupil element used
+PRIMARY,PILIN,False,Pupil imaging lens in the optical path?
+PRIMARY,CORONMSK,NONE,coronagraph mask used
+PRIMARY,OPMODE,NONE,Lamp operating mode
+PRIMARY,EXPCOUNT,1,Running count of exposures in visit
+PRIMARY,EXPRIPAR,PRIME,Prime or parallel exposure
+PRIMARY,EXP_TYPE,NRC_TSIMAGE,Type of data in the exposure
+PRIMARY,EXPSTART,59980.79313982639,[d] exposure start time in MJD
+PRIMARY,EXPMID,59980.98986482639,[d] exposure mid time in MJD
+PRIMARY,EXPEND,59981.18658982639,[d] exposure end time in MJD
+PRIMARY,OSF_FILE,2023037T053330659_002_osf.xml,Observatory Status File name coverin
+PRIMARY,READPATT,BRIGHT1,Readout pattern
+PRIMARY,EXSEGNUM,1,Sequential segment number
+PRIMARY,EXSEGTOT,3,Total number of segments
+PRIMARY,NOUTPUTS,1,Number of detector outputs used
+PRIMARY,NINTS,6100,Number of integrations in exposure
+PRIMARY,INTSTART,1,Starting integration number in this segment
+PRIMARY,INTEND,2925,Ending integration number in this segment
+PRIMARY,NGROUPS,10,Number of groups in integration
+PRIMARY,NFRAMES,1,Number of frames per group
+PRIMARY,FRMDIVSR,1,Divisor applied to frame-averaged groups
+PRIMARY,GROUPGAP,1,Number of frames dropped between groups
+PRIMARY,DRPFRMS1,0,Frames dropped prior to first integration
+PRIMARY,DRPFRMS3,0,Frames dropped between integrations
+PRIMARY,NSAMPLES,1,Number of A/D samples per pixel
+PRIMARY,TSAMPLE,10.0,[us] Time between samples
+PRIMARY,TFRAME,0.27864,[s] Time between frames
+PRIMARY,TGROUP,0.55728,[s] Time between groups
+PRIMARY,EFFINTTM,5.294160000000001,[s] Effective integration time
+PRIMARY,EFFEXPTM,32294.376,[s] Effective exposure time
+PRIMARY,DURATION,34025.312,[s] Total duration of exposure
+PRIMARY,NRSTSTRT,1,Number of resets at start of exposure
+PRIMARY,NRESETS,1,Number of resets between integrations
+PRIMARY,ZEROFRAM,False,Zero frame was downlinked separately
+PRIMARY,DATAPROB,False,Science telemetry indicated a problem
+PRIMARY,SCA_NUM,486,Sensor Chip Assembly number
+PRIMARY,DATAMODE,32,post-processing method used in FPAP
+PRIMARY,SCTARATE,0.000515323378936541,[ms/s] Spacecraft Clock Time Adjust RATE
+PRIMARY,IS_PSF,False,exposure is PSF reference
+PRIMARY,SELFREF,False,self-referencing PSF
+PRIMARY,PRIMECRS,0.07856223257368103,Cosmic Ray rate per thousand pixels per second
+PRIMARY,EXTNCRS,0.0,Snowballs/showers per million pixels per second
+PRIMARY,SUBARRAY,SUB160P,Subarray used
+PRIMARY,SUBSTRT1,1803,Starting pixel in axis 1 direction
+PRIMARY,SUBSTRT2,1769,Starting pixel in axis 2 direction
+PRIMARY,SUBSIZE1,160,Number of pixels in axis 1 direction
+PRIMARY,SUBSIZE2,160,Number of pixels in axis 2 direction
+PRIMARY,FASTAXIS,1,Fast readout axis direction
+PRIMARY,SLOWAXIS,-2,Slow readout axis direction
+PRIMARY,PATTTYPE,NONE,Primary dither pattern type
+PRIMARY,PATT_NUM,1,Position number within dither pattern
+PRIMARY,NUMDTHPT,1,Total number of points in pattern
+PRIMARY,XOFFSET,3.81595281818908e-13,x offset from pattern starting position
+PRIMARY,YOFFSET,7.08258719294425e-11,y offset from pattern starting position
+PRIMARY,APERNAME,NRCB1_SUB160P,PRD science aperture used
+PRIMARY,PPS_APER,NRCB5_SUB160P,original AperName supplied by PPS
+PRIMARY,VA_RA,234.88231433423329,[deg] Velocity aberrated apparent reference RA
+PRIMARY,VA_DEC,50.45552262609792,[deg] Velocity aberrated apparent reference Dec
+PRIMARY,BARTDELT,142.3970103962347,[s] Barycentric correction at exposure start
+PRIMARY,BSTRTIME,59980.79478793994,[d] Barycentric exposure start time in MJD
+PRIMARY,BENDTIME,59981.18825315557,[d] Barycentric exposure end time in MJD
+PRIMARY,BMIDTIME,59980.99152055235,[d] Barycentric exposure mid time in MJD
+PRIMARY,HELIDELT,140.6342798145488,[s] Heliocentric correction at exposure start
+PRIMARY,HSTRTIME,59980.79476753796,[d] Heliocentric exposure start time in MJD
+PRIMARY,HENDTIME,59981.18823275121,[d] Heliocentric exposure end time in MJD
+PRIMARY,HMIDTIME,59980.99150014918,[d] Heliocentric exposure mid time in MJD
+PRIMARY,FAM_LA1,0,position in steps of linear actuator 1
+PRIMARY,FASTEP1,0,requested focus actuator 1 starting steps
+PRIMARY,FAUNIT1,0.0,requested focus actuator 1 starting units
+PRIMARY,FAPHASE1,NULL,requested focus actuator 1 starting phase
+PRIMARY,FA1VALUE,0,requested focus actuator 1 position value
+PRIMARY,FAM_LA2,0,position in steps of linear actuator 2
+PRIMARY,FASTEP2,0,requested focus actuator 2 starting steps
+PRIMARY,FAUNIT2,0.0,requested focus actuator 2 starting units
+PRIMARY,FAPHASE2,NULL,requested focus actuator 2 starting phase
+PRIMARY,FA2VALUE,0,requested focus actuator 2 position value
+PRIMARY,FAM_LA3,0,position in steps of linear actuator 3
+PRIMARY,FASTEP3,0,requested focus actuator 3 starting steps
+PRIMARY,FAUNIT3,0.0,requested focus actuator 3 starting units
+PRIMARY,FAPHASE3,NULL,requested focus actuator 3 starting phase
+PRIMARY,FA3VALUE,0,requested focus actuator 3 position value
+PRIMARY,GS_ORDER,1,index of guide star within list of selected gui
+PRIMARY,GSSTRTTM,2023-02-05 18:53:54.9310000,UTC time when guide star activity star
+PRIMARY,GSENDTIM,2023-02-05 18:57:57.6190000,UTC time when guide star activity comp
+PRIMARY,GDSTARID,N60S010581,guide star identifier
+PRIMARY,GS_RA,235.0273286624808,guide star right ascension
+PRIMARY,GS_DEC,50.48611961914964,guide star declination
+PRIMARY,GS_URA,0.000219293609261512,guide star right ascension uncertainty
+PRIMARY,GS_UDEC,0.000221558824181556,guide star declination uncertainty
+PRIMARY,GS_MAG,16.63854598999023,guide star magnitude in FGS detector
+PRIMARY,GS_UMAG,0.09138740599155426,guide star magnitude uncertainty
+PRIMARY,GS_V3_PA,284.973177007083,V3 Position Angle of guide star for science
+PRIMARY,PCS_MODE,FINEGUIDE,Pointing Control System mode
+PRIMARY,VISITEND,2023-02-06 04:29:44.6570000,Observatory UTC time when the visit co
+PRIMARY,CRDS_VER,11.17.2,Version of CRDS file selection software used
+PRIMARY,CRDS_CTX,jwst_1118.pmap,CRDS context (.pmap) used to select ref files
+PRIMARY,R_AREA,crds://jwst_nircam_area_0036.fits,Pixel area reference file name
+PRIMARY,R_CAMERA,N/A,Nirspec Camera reference file name
+PRIMARY,R_COLLIM,N/A,Nirspec Collimator reference file name
+PRIMARY,R_DARK,crds://jwst_nircam_dark_0313.fits,Dark reference file name
+PRIMARY,R_DISPER,N/A,Disperser reference file name
+PRIMARY,R_DISTOR,crds://jwst_nircam_distortion_0161.asdf,Distortion reference file
+PRIMARY,R_FILOFF,crds://jwst_nircam_filteroffset_0006.asdf,Filter Offset reference
+PRIMARY,R_FLAT,crds://jwst_nircam_flat_0468.fits,Flat reference file name
+PRIMARY,R_DFLAT,N/A,DFlat reference file name
+PRIMARY,R_FFLAT,N/A,FFlat reference file name
+PRIMARY,R_SFLAT,N/A,SFlat reference file name
+PRIMARY,R_FORE,N/A,Nirspec FORE Model reference file name
+PRIMARY,R_FPA,N/A,Nirspec FPA Model reference file name
+PRIMARY,R_GAIN,crds://jwst_nircam_gain_0090.fits,Gain reference file name
+PRIMARY,R_IFUFOR,N/A,ifufore reference file name
+PRIMARY,R_IFUPOS,N/A,ifupost reference file name
+PRIMARY,R_IFUSLI,N/A,ifuslicer reference file name
+PRIMARY,R_LINEAR,crds://jwst_nircam_linearity_0057.fits,Linearity reference file na
+PRIMARY,R_MASK,crds://jwst_nircam_mask_0060.fits,Mask reference file name
+PRIMARY,R_MSA,N/A,Nirspec MSA Model reference file name
+PRIMARY,R_OTE,N/A,Nirspec OTE Model reference file name
+PRIMARY,R_PHOTOM,crds://jwst_nircam_photom_0118.fits,Photometric reference file nam
+PRIMARY,R_READNO,crds://jwst_nircam_readnoise_0165.fits,Read noise reference file n
+PRIMARY,R_REGION,N/A,Regions reference file name
+PRIMARY,R_SATURA,crds://jwst_nircam_saturation_0102.fits,Saturation reference file
+PRIMARY,R_SPCWCS,N/A,Spectral distortion reference file name
+PRIMARY,R_SUPERB,crds://jwst_nircam_superbias_0154.fits,Superbias reference file na
+PRIMARY,R_WAVRAN,N/A,Wavelength Range reference file name
+PRIMARY,S_WCS,COMPLETE,Assign World Coordinate System
+PRIMARY,S_DARK,COMPLETE,Dark Subtraction
+PRIMARY,S_DQINIT,COMPLETE,Data Quality Initialization
+PRIMARY,S_FLAT,COMPLETE,Flat Field Correction
+PRIMARY,S_GANSCL,SKIPPED,Gain Scale Correction
+PRIMARY,S_GRPSCL,SKIPPED,Group Scale Correction
+PRIMARY,S_IPC,SKIPPED,Interpixel Capacitance Correction
+PRIMARY,S_JUMP,COMPLETE,Jump Detection
+PRIMARY,S_LINEAR,COMPLETE,Linearity Correction
+PRIMARY,S_OUTLIR,COMPLETE,Outlier Detection
+PRIMARY,S_PERSIS,SKIPPED,Persistence Correction
+PRIMARY,S_PHOTOM,COMPLETE,Photometric Calibration
+PRIMARY,S_RAMP,COMPLETE,Ramp Fitting
+PRIMARY,S_REFPIX,COMPLETE,Reference Pixel Correction
+PRIMARY,S_SATURA,COMPLETE,Saturation Checking
+PRIMARY,S_SUPERB,COMPLETE,Superbias Subtraction
+SCI,XTENSION,IMAGE,Image extension
+SCI,BITPIX,-32,array data type
+SCI,NAXIS,3,number of array dimensions
+SCI,NAXIS1,160,
+SCI,NAXIS2,160,
+SCI,NAXIS3,2925,
+SCI,PCOUNT,0,number of parameters
+SCI,GCOUNT,1,number of groups
+SCI,EXTNAME,SCI,extension name
+SCI,MJD-BEG,59980.79313982639,[d] exposure start time in MJD
+SCI,MJD-AVG,59980.98986482639,[d] exposure mid-point in MJD
+SCI,MJD-END,59981.18658982639,[d] exposure end time in MJD
+SCI,TDB-BEG,59980.79478793945,[d] TDB time of exposure start in MJD
+SCI,TDB-MID,59980.99152055186,[d] TDB time of exposure mid-point in MJD
+SCI,TDB-END,59981.18825315506,[d] TDB time of exposure end in MJD
+SCI,XPOSURE,32294.376,[s] Effective exposure time
+SCI,TELAPSE,34025.312,[s] Total elapsed exposure time
+SCI,REFFRAME,EME2000,Ephemeris reference frame
+SCI,EPH_TYPE,Definitive,Definitive or Predicted
+SCI,EPH_TIME,59980.98986482639,[d] MJD time of position and velocity vectors
+SCI,JWST_X,-109076334.2464736,[km] barycentric JWST X coordinate at MJD_AVG
+SCI,JWST_Y,94433294.73403105,[km] barycentric JWST Y coordinate at MJD_AVG
+SCI,JWST_Z,40686882.92015418,[km] barycentric JWST Z coordinate at MJD_AVG
+SCI,OBSGEO-X,-580663789.590796,[m] geocentric JWST X coordinate at MJD_AVG
+SCI,OBSGEO-Y,1473223684.96429,[m] geocentric JWST Y coordinate at MJD_AVG
+SCI,OBSGEO-Z,354800456.4779049,[m] geocentric JWST Z coordinate at MJD_AVG
+SCI,JWST_DX,-21.10697522235143,[km/s] barycentric JWST X velocity at MJD_AVG
+SCI,JWST_DY,-20.12429662062409,[km/s] barycentric JWST Y velocity at MJD_AVG
+SCI,JWST_DZ,-8.577994074587187,[km/s] barycentric JWST Z velocity at MJD_AVG
+SCI,OBSGEODX,-161.5196697606875,[m/s] geocentric JWST X velocity at MJD_AVG
+SCI,OBSGEODY,-159.9559942000606,[m/s] geocentric JWST Y velocity at MJD_AVG
+SCI,OBSGEODZ,75.94138735884412,[m/s] geocentric JWST Z velocity at MJD_AVG
+SCI,PA_APER,285.32540230903925,[deg] Position angle of aperture used
+SCI,VA_SCALE,1.0000386769867462,Velocity aberration scale factor
+SCI,BUNIT,MJy/sr,physical units of the array values
+SCI,PHOTMJSR,4.473999977111816,Flux density (MJy/steradian) producing 1 cps
+SCI,PHOTUJA2,105.15882169395023,Flux density (uJy/arcsec2) producing 1 cps
+SCI,PIXAR_SR,2.23e-14,Nominal pixel area in steradians
+SCI,PIXAR_A2,0.0009453,Nominal pixel area in arcsec^2
+SCI,RADESYS,ICRS,Name of the coordinate reference frame
+SCI,RA_V1,234.71809989889192,[deg] RA of telescope V1 axis
+SCI,DEC_V1,50.53132712831115,[deg] Dec of telescope V1 axis
+SCI,PA_V3,284.73446821210723,[deg] Position angle of telescope V3 axis
+SCI,WCSAXES,2,number of World Coordinate System axes
+SCI,CRPIX1,80.31,axis 1 coordinate of the reference pixel
+SCI,CRPIX2,78.22,axis 2 coordinate of the reference pixel
+SCI,CRVAL1,234.88402868566,first axis value at the reference pixel
+SCI,CRVAL2,50.460781371758,second axis value at the reference pixel
+SCI,CTYPE1,RA---TAN,Axis 1 type
+SCI,CTYPE2,DEC--TAN,Axis 2 type
+SCI,CUNIT1,deg,Axis 1 units
+SCI,CUNIT2,deg,Axis 2 units
+SCI,CD1_1,-2.2760461514651e-06,"linear transformation matrix element, CD matrix"
+SCI,CD1_2,-8.2141376211297e-06,"linear transformation matrix element, CD matrix"
+SCI,CD2_1,-8.1887964829095e-06,"linear transformation matrix element, CD matrix"
+SCI,CD2_2,2.2507707297963e-06,"linear transformation matrix element, CD matrix"
+SCI,S_REGION,POLYGON ICRS  234.885308603 50.461257165 234.883243861 50.461616824 234.882672078 50.460307089 234.884736286 50.459946489,spatial extent of the observation
+SCI,V2_REF,-148.485879,[arcsec] Telescope V2 coord of reference point
+SCI,V3_REF,-432.237215,[arcsec] Telescope V3 coord of reference point
+SCI,VPARITY,-1,Relative sense of rotation between Ideal xy and
+SCI,V3I_YANG,0.4629549,[deg] Angle from V3 axis to Ideal y axis
+SCI,RA_REF,234.8840220631934,[deg] Right ascension of the reference point
+SCI,DEC_REF,50.460781925725826,[deg] Declination of the reference point
+SCI,ROLL_REF,284.86244740903925,[deg] V3 roll angle at the ref point (N over E)
+SCI,VELOSYS,-11593.45,[m/s] Barycentric correction to radial velocity
+SCI,XREF_SCI,80.31,Aperture X reference point in SCI frame
+SCI,YREF_SCI,78.22,Aperture Y reference point in SCI frame
+SCI,EXTVER,1,extension value
+ERR,XTENSION,IMAGE,Image extension
+ERR,BITPIX,-32,array data type
+ERR,NAXIS,3,number of array dimensions
+ERR,NAXIS1,160,
+ERR,NAXIS2,160,
+ERR,NAXIS3,2925,
+ERR,PCOUNT,0,number of parameters
+ERR,GCOUNT,1,number of groups
+ERR,EXTNAME,ERR,extension name
+ERR,BUNIT,MJy/sr,physical units of the array values
+ERR,EXTVER,1,extension value
+DQ,XTENSION,IMAGE,Image extension
+DQ,BITPIX,32,array data type
+DQ,NAXIS,3,number of array dimensions
+DQ,NAXIS1,160,
+DQ,NAXIS2,160,
+DQ,NAXIS3,2925,
+DQ,PCOUNT,0,number of parameters
+DQ,GCOUNT,1,number of groups
+DQ,BSCALE,1,
+DQ,BZERO,2147483648,
+DQ,EXTNAME,DQ,extension name
+DQ,EXTVER,1,extension value
+AREA,XTENSION,IMAGE,Image extension
+AREA,BITPIX,-32,array data type
+AREA,NAXIS,2,number of array dimensions
+AREA,NAXIS1,160,
+AREA,NAXIS2,160,
+AREA,PCOUNT,0,number of parameters
+AREA,GCOUNT,1,number of groups
+AREA,EXTNAME,AREA,extension name
+AREA,EXTVER,1,extension value
+INT_TIMES,XTENSION,BINTABLE,binary table extension
+INT_TIMES,BITPIX,8,array data type
+INT_TIMES,NAXIS,2,number of array dimensions
+INT_TIMES,NAXIS1,52,length of dimension 1
+INT_TIMES,NAXIS2,2925,length of dimension 2
+INT_TIMES,PCOUNT,0,number of group parameters
+INT_TIMES,GCOUNT,1,number of groups
+INT_TIMES,TFIELDS,7,number of table fields
+INT_TIMES,EXTNAME,INT_TIMES,extension name
+INT_TIMES,EXTVER,1,extension value
+INT_TIMES,TTYPE1,integration_number,
+INT_TIMES,TFORM1,J,
+INT_TIMES,TTYPE2,int_start_MJD_UTC,
+INT_TIMES,TFORM2,D,
+INT_TIMES,TTYPE3,int_mid_MJD_UTC,
+INT_TIMES,TFORM3,D,
+INT_TIMES,TTYPE4,int_end_MJD_UTC,
+INT_TIMES,TFORM4,D,
+INT_TIMES,TTYPE5,int_start_BJD_TDB,
+INT_TIMES,TFORM5,D,
+INT_TIMES,TTYPE6,int_mid_BJD_TDB,
+INT_TIMES,TFORM6,D,
+INT_TIMES,TTYPE7,int_end_BJD_TDB,
+INT_TIMES,TFORM7,D,
+VAR_POISSON,XTENSION,IMAGE,Image extension
+VAR_POISSON,BITPIX,-32,array data type
+VAR_POISSON,NAXIS,3,number of array dimensions
+VAR_POISSON,NAXIS1,160,
+VAR_POISSON,NAXIS2,160,
+VAR_POISSON,NAXIS3,2925,
+VAR_POISSON,PCOUNT,0,number of parameters
+VAR_POISSON,GCOUNT,1,number of groups
+VAR_POISSON,EXTNAME,VAR_POISSON,extension name
+VAR_POISSON,EXTVER,1,extension value
+VAR_RNOISE,XTENSION,IMAGE,Image extension
+VAR_RNOISE,BITPIX,-32,array data type
+VAR_RNOISE,NAXIS,3,number of array dimensions
+VAR_RNOISE,NAXIS1,160,
+VAR_RNOISE,NAXIS2,160,
+VAR_RNOISE,NAXIS3,2925,
+VAR_RNOISE,PCOUNT,0,number of parameters
+VAR_RNOISE,GCOUNT,1,number of groups
+VAR_RNOISE,EXTNAME,VAR_RNOISE,extension name
+VAR_RNOISE,EXTVER,1,extension value
+VAR_FLAT,XTENSION,IMAGE,Image extension
+VAR_FLAT,BITPIX,-32,array data type
+VAR_FLAT,NAXIS,3,number of array dimensions
+VAR_FLAT,NAXIS1,160,
+VAR_FLAT,NAXIS2,160,
+VAR_FLAT,NAXIS3,2925,
+VAR_FLAT,PCOUNT,0,number of parameters
+VAR_FLAT,GCOUNT,1,number of groups
+VAR_FLAT,EXTNAME,VAR_FLAT,extension name
+VAR_FLAT,EXTVER,1,extension value
+ASDF,XTENSION,BINTABLE,binary table extension
+ASDF,BITPIX,8,array data type
+ASDF,NAXIS,2,number of array dimensions
+ASDF,NAXIS1,25754,length of dimension 1
+ASDF,NAXIS2,1,length of dimension 2
+ASDF,PCOUNT,0,number of group parameters
+ASDF,GCOUNT,1,number of groups
+ASDF,TFIELDS,1,number of table fields
+ASDF,TTYPE1,ASDF_METADATA,
+ASDF,TFORM1,25754B,
+ASDF,EXTNAME,ASDF,extension name

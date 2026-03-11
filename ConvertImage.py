@@ -22,11 +22,16 @@ original_path = Path(r"T:/MAST_2023-10-07T0548/JWST")
 # Set the output directories for full-size images and thumbnails
 full_size_dir = Path(r"T:/jwst/static/img/full-size")
 full_size_dir.mkdir(parents=True, exist_ok=True)
+zoom_dir = Path(r"T:/jwst/static/img/zoom")
+zoom_dir.mkdir(parents=True, exist_ok=True)
 thumbnail_dir = Path(r"T:/jwst/static/img/thumbnails")
 thumbnail_dir.mkdir(parents=True, exist_ok=True)
 
 OnlyImg_dir = Path(r"T:/jwst/static/img/OnlyImg")
 OnlyImg_dir.mkdir(parents=True, exist_ok=True)
+thumbnail_OnlyImg_dir = Path(r"T:/jwst/static/img/thumbnail_OnlyImg")
+thumbnail_OnlyImg_dir.mkdir(parents=True, exist_ok=True)
+
 
 def old_convertToPNG(theSlice, filepath, output_dir):
     
@@ -186,6 +191,7 @@ def create_thumbnail(image_path, thumbnail_dir, size=(128, 128)):
     thumbnail_path = thumbnail_dir / image_path.name
     img.save(thumbnail_path, "PNG")
 
+
 for epoch in ["epoch1","epoch2"]:
     # for wave_type in ["sw"]:
     for wave_type in ["lw", "sw"]:
@@ -209,17 +215,23 @@ for epoch in ["epoch1","epoch2"]:
             # for i in range(0,1):
             for i in range(istart, iend+1):
                 print("File: ",filename ," Frame: ", i+1)
-                OnlyImg_output_dir = OnlyImg_dir/ epoch/ wave_type
-                OnlyImg_output_dir.mkdir(parents=True, exist_ok=True)
+                # OnlyImg_output_dir = OnlyImg_dir/ epoch/ wave_type
+                # OnlyImg_output_dir.mkdir(parents=True, exist_ok=True)
+                # thumbnail_OnlyImg_dir = thumbnail_OnlyImg_dir/ epoch/ wave_type
+                # thumbnail_OnlyImg_dir.mkdir(parents=True, exist_ok=True)
                 # full_size_output_dir = full_size_dir/ epoch/ wave_type
                 # full_size_output_dir.mkdir(parents=True, exist_ok=True)
+                zoom_output_dir = zoom_dir/ epoch/ wave_type
+                zoom_output_dir.mkdir(parents=True, exist_ok=True)
                 # thumbnail_output_dir = thumbnail_dir/ epoch/ wave_type
                 # thumbnail_output_dir.mkdir(parents=True, exist_ok=True)
                 try:
-                    output_path = convertToPNG_forGroupImg(i, filename, OnlyImg_output_dir)
+                    # output_path = convertToPNG_forGroupImg(i, filename, OnlyImg_output_dir)
                     # output_path = convertToPNG(i, filename, full_size_output_dir)
+                    output_path = convertToPNG(i, filename, zoom_output_dir)
                     # # Create a thumbnail of the saved PNG
                     # create_thumbnail(output_path, thumbnail_output_dir)
+                    # create_thumbnail(output_path, thumbnail_OnlyImg_dir)
                 except Exception as e:
                     print("Error: ", filename)
                     print("iend: ", iend)
