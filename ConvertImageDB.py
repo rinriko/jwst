@@ -738,7 +738,7 @@ original_path = Path(r"T:\JWST-Timing\MAST_2023-10-07T0548\JWST")
 full_size_dir = Path(r"T:\JWST-Timing\jwst\output\test")
 full_size_dir.mkdir(parents=True, exist_ok=True)
 
-def convertToPNG(theSlice, filepath, output_dir):
+def convertToPNG(theSlice, filepath, output_dir, vmin=None, vmax=None):
     s = theSlice
     number_size = 12
     label_size = 20
@@ -785,7 +785,11 @@ def convertToPNG(theSlice, filepath, output_dir):
     )
 
     # 4) Now plot with WCSAxes—axes will be straight
-    norm = ImageNormalize(array, interval=ZScaleInterval(), stretch=LinearStretch())
+    if vmin is not None and vmax is not None:
+        norm = ImageNormalize(vmin=vmin, vmax=vmax, stretch=LinearStretch())
+    else:
+        norm = ImageNormalize(array, interval=ZScaleInterval(), stretch=LinearStretch())
+    # norm = ImageNormalize(array, interval=ZScaleInterval(), stretch=LinearStretch())
 
     fig = plt.figure(figsize=(10,8))
     ax  = fig.add_subplot(1,1,1, projection=new_wcs)
@@ -1012,6 +1016,8 @@ def convertImgToJSON(
     n_grid=10,
     # save_json_path="output.json",
     output_dir: Union[str, Path] = ".",
+    vmin: float = None,
+    vmax: float = None,
 ) -> List[Path]:
     """
     Export JWST FITS slice into a JSON file containing:
@@ -1073,8 +1079,10 @@ def convertImgToJSON(
     )
 
     # ========== 4. ZScale normalization ==========
-    interval = ZScaleInterval()
-    vmin, vmax = interval.get_limits(array)
+    if vmin is None or vmax is None:
+        # vmin, vmax = ZScaleInterval().get_limits(array)
+        interval = ZScaleInterval()
+        vmin, vmax = interval.get_limits(array)
     # norm = ImageNormalize(array, interval=ZScaleInterval(), stretch=LinearStretch())
 
     # ========== 5. Center pixel transform ==========
@@ -1295,14 +1303,16 @@ def _worker_convert_Annulus(filename, frame_idx, output_dir, rawdata_subdict, ra
             "err": f"{e.__class__.__name__}: {e}",
             "trace": traceback.format_exc()
         }
-def _worker_convert_normalImg(filename, frame_idx, output_dir):
+def _worker_convert_normalImg(filename, frame_idx, output_dir, vmin, vmax):
     try:
         import matplotlib
         matplotlib.use("Agg")  # safe for parallel, headless
         out_path = convertToPNG(
             theSlice=frame_idx,
             filepath=Path(filename),
-            output_dir=Path(output_dir)
+            output_dir=Path(output_dir),
+            vmin=vmin,
+            vmax=vmax
         )
         return {"ok": True, "file": filename, "frame": frame_idx, "out": str(out_path)}
     except Exception as e:
@@ -1314,7 +1324,7 @@ def _worker_convert_normalImg(filename, frame_idx, output_dir):
             "trace": traceback.format_exc()
         }
 
-def _worker_convert_imgJson(filename, frame_idx, output_dir, rawdata_subdict, radii_pairs):
+def _worker_convert_imgJson(filename, frame_idx, output_dir, rawdata_subdict, radii_pairs, vmin, vmax):
     try:
         import matplotlib
         matplotlib.use("Agg")  # safe for parallel, headless
@@ -1326,6 +1336,8 @@ def _worker_convert_imgJson(filename, frame_idx, output_dir, rawdata_subdict, ra
             radii_pairs=radii_pairs,          # full list, not a single pair
             n_grid=10,
             output_dir=Path(output_dir),
+            vmin=vmin,
+            vmax=vmax
         )
         return {"ok": True, "file": filename, "frame": frame_idx, "out": str(out_path)}
     except Exception as e:
@@ -1472,8 +1484,111 @@ def run_tasks(name, task_list, worker_func, max_workers, log_path):
     print("\n")
     print("\n")
 
+def compute_global_norm(all_fileLists):
+    """
+    Load ALL frames across ALL files for a true global vmin/vmax.
+    """
+    all_samples = []
+    for filepath in all_fileLists:
+        try:
+            with fits.open(filepath, memmap=True) as hdul:
+                data = hdul[1].data  # shape: (nframes, ny, nx)
+                flat = data[np.isfinite(data)].ravel()
+                all_samples.append(flat)
+        except Exception as e:
+            print(f"[norm] Skipping {filepath}: {e}")
+    
+    combined = np.concatenate(all_samples)
+    vmin, vmax = ZScaleInterval().get_limits(combined)
+    return float(vmin), float(vmax)
+
 
 def main():
+    rawdata = process_data('ZTF_J1539')
+    log_path = Path("T:\JWST-Timing\jwst\error\errors.txt")
+    
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write("file\tframe\terror\ttraceback_last_line\n")
+
+    tasks_Annulus = []
+    tasks_normalImg = []
+    tasks_imgJson = []
+
+    # -------------------------
+    # 1. Collect ALL files first
+    # -------------------------
+    epoch_wave_files = {}
+    all_files = []
+
+    # for epoch in ["epoch1", "epoch2"]:
+    #     for wave_type in ["lw", "sw"]:
+    for epoch in ["epoch1"]:
+        for wave_type in ["lw"]:    
+            if epoch == "epoch1":
+                sw_files = sorted(original_path.glob("jw01666001001*_nrcb1/*crfints.fits"))
+                lw_files = sorted(original_path.glob("jw01666001001*_nrcblong/*crfints.fits"))
+            else:
+                sw_files = sorted(original_path.glob("jw01666003001*_nrcb1/*crfints.fits"))
+                lw_files = sorted(original_path.glob("jw01666003001*_nrcblong/*crfints.fits"))
+
+            fileList = lw_files if wave_type == "lw" else sw_files
+            epoch_wave_files[(epoch, wave_type)] = fileList
+            all_files.extend(fileList)
+
+    # -------------------------
+    # 2. Compute ONE global norm across ALL files/frames
+    # -------------------------
+    print("Computing global normalization across all files...")
+    vmin, vmax = compute_global_norm(all_files)
+    print(f"Global norm: vmin={vmin:.4f}, vmax={vmax:.4f}")
+
+    # -------------------------
+    # 3. Build tasks
+    # -------------------------
+    # for epoch in ["epoch1", "epoch2"]:
+    #     for wave_type in ["lw", "sw"]:
+    for epoch in ["epoch1"]:
+        for wave_type in ["lw"]:    
+            fileList = epoch_wave_files[(epoch, wave_type)]
+
+            radii_pairs = [
+                (r_in_key, r_out_key)
+                for r_in_key, r_outs in rawdata[epoch][wave_type].items()
+                for r_out_key in r_outs.keys()
+            ]
+
+            group_out_dir = full_size_dir / epoch / wave_type
+            group_out_dir.mkdir(parents=True, exist_ok=True)
+
+            for filename in fileList:
+                try:
+                    with fits.open(filename, memmap=True) as f:
+                        data = f["SCI"].data
+                        nframes = data.shape[0] if data.ndim == 3 else 1
+                except Exception as e:
+                    with open(log_path, "a", encoding="utf-8") as logf:
+                        logf.write(f"{filename}\t-1\tOpenError: {e}\n")
+                    continue
+
+                for i in range(0, 10):
+                # for i in range(0, nframes):
+                    tasks_normalImg.append((
+                        str(filename), i, str(group_out_dir), vmin, vmax  # <-- added vmin, vmax
+                    ))
+                    tasks_imgJson.append((
+                        str(filename), i, str(group_out_dir),
+                        rawdata[epoch][wave_type], radii_pairs, vmin, vmax  # <-- added vmin, vmax
+                    ))
+
+    max_workers = 16
+    run_tasks("NormalImg", tasks_normalImg, _worker_convert_normalImg, max_workers, log_path)
+    run_tasks("ImgJSON", tasks_imgJson, _worker_convert_imgJson, max_workers, log_path)
+
+    print("All tasks finished.")
+    print("\nAll submitted frames processed. See error log at:", log_path)
+
+def main2():
     rawdata = process_data('ZTF_J1539')
     # rawdata = load_json(r"/mnt/VIZ/work/proemsri/jwst/rawdata.json")
     # log_path = Path("/mnt/VIZ/work/proemsri/jwst/errors.txt")

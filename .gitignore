@@ -13,6 +13,8 @@ img/
 
 # Data files
 output/
+output_with_exclude/
+output_with_exclude_old/
 
 # library directory 
 lib/
