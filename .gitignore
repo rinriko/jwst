@@ -15,6 +15,9 @@ img/
 output/
 output_with_exclude/
 output_with_exclude_old/
+output_with_Corrupt_Recalculated/
+output_with_Corrupt_Origin/
+output_with_Corrupt_Recalculated30/
 
 # library directory 
 lib/
